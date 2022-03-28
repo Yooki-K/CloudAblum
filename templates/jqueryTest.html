@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="shortcut icon" href="/static/img/favicon.png')}}">
+
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/bootstrap.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/member.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/layer.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/base.css') }}">
+    <link href="/static/css/style.css" rel="stylesheet">
+    <script src="/static/js/jquery.min.js"></script>
+    <script>
+        $(document).ready(function(){
+           $(".nav-dropdown-toggle").hover(function(){
+           $(this).next().slideToggle("slow");
+         });
+        });
+
+
+    </script>
+    <style>
+        #panel,#flip
+{
+	padding:5px;
+	text-align:center;
+	background-color:#e5eecc;
+	border:solid 1px #c3c3c3;
+}
+.panel
+{
+	display:none;
+}
+
+
+    </style>
+</head>
+<body>
+<div id="flip">点我，显示或隐藏面板。</div>
+<div id="panel">Hello world!</div>
+<div class="app-body">
+    <div class="sidebar">
+        <nav class="sidebar-nav">
+
+            <li class="nav-item nav-dropdown">
+                <a class="nav-link nav-dropdown-toggle" href="#"><i class="icon-puzzle"></i> 册</a>
+                <ul class="panel nav-dropdown-items">
+                    <li class="nav-item">
+                        <a class="nav-link" href="components-buttons.html"><i class="icon-puzzle"></i> Buttons</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="components-social-buttons.html"><i class="icon-puzzle"></i> Social
+                            Buttons</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="components-cards.html"><i class="icon-puzzle"></i> Cards</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="components-forms.html"><i class="icon-puzzle"></i> Forms</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="components-modals.html"><i class="icon-puzzle"></i> Modals</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="components-switches.html"><i class="icon-puzzle"></i> Switches</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="components-tables.html"><i class="icon-puzzle"></i> Tables</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="components-tabs.html"><i class="icon-puzzle"></i> Tabs</a>
+                    </li>
+                </ul>
+            </li>
+
+        </nav>
+    </div>
+</div>
+</body>
+</html>

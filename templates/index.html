@@ -1,0 +1,24 @@
+{%extends 'base/baseHtml.html'%}
+{%block show%}
+{%include 'base/baseShow.html'%}
+{%endblock%}
+{%set index=0%}
+{%block functionOnload%}
+var i=1;
+var ll = {{len(path)}};
+var pp = '{{path}}';
+pp = pp.replace("[","").replace("]","").replace(",","");
+pp = pp.split("&#39;");
+$('#vv').on('ended',function(){
+i++;
+if(i%2 == 0){
+i++;
+}
+if(i >= pp.length){
+i=1;
+}
+this.src=pp[i];
+this.play();
+});
+{%endblock%}
+

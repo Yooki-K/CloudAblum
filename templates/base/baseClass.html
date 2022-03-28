@@ -1,0 +1,81 @@
+<div class="clearfix">
+    <button id="create_ablum" class="add webuploader-container create" onclick="provideName();"></button>
+    <div id="createAlbum" class="modal login">
+        <div class="modal-dialog login animated" style="top:10%;left:10%;">
+            <div class="modal-content">
+                <form action="/operate/ablum/create" method="post" style="display:inline-block;">
+                    相册名字：<input type="text" name="ablumName">
+                    <button onclick="$('#createAlbum').submit();$('#ceateAlbum').hide();" class="btn btn-primary"
+                            style="    height: 25px;
+    margin: 5px">创建
+                    </button>
+                    <button onclick="$('#createAlbum').hide();" type="reset" class="btn btn-primary" style="    height: 25px;
+    margin: 5px">取消
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <li class="nav-item dropdown" style="position:fixed;right: 30px;">
+        <button class="send " data-counter="0">&#10004;</button>
+        <div>
+            <button onclick="deleteImgs($('.show1.selected'),'{{url_for('deleteImage')}}')"
+                    style="width:45px;background:crimson;display:none;" id="delete">删除
+            </button>
+        </div>
+        <div>
+            <button onclick="downloadFiles($('.show1.selected'))"
+                    style="width:45px;background:yellowgreen;display:none;" id="download">下载
+            </button>
+        </div>
+        <div id="move_div">
+            <button onclick="provideTags({{list(file_list.keys())}},$('.show1.selected'),'{{url_for('update_tag',t=2)}}')"
+                    style="width:45px;background:blue;display:none;" id="move">移动
+            </button>
+        </div>
+    </li>
+
+    </li>
+</div>
+
+<div class="container-fluid">
+    {%for x in file_list%}
+    <div>
+        <div class="grid-item">
+            <a href="#" class="rename-toggle" style="display:inline-block;font-size:25px;">...</a>
+            <div style="display:none;">
+                <input id="new_Name{{x}}" \>
+                <button onclick="AlbumRename('{{x}}',$('#new_Name{{x}}').val(),'{{url_for('operate_ablum',t='rename')}}')"
+                        class="rename">重命名
+                </button>
+            </div>
+            <figure class="effect-bubba">
+                {% if file_list[x] == 'none' %}
+                <img src="{{ url_for('static',filename='images/empty.jpg') }}" title="{{x}}"
+                     alt="Image"
+                     class="img-fluid tm-img">
+                {%else%}
+                <img src="{{getbase64(file_list[x].content)}}" title="{{x}}"
+                     style="background-image:{{getbase64(file_list[x].content)}}" alt="Image"
+                     class="img-fluid tm-img" id="{{file_list[x].id}}">
+                {% endif %}
+                <figcaption>
+                    <h2 class="tm-figure-title">{{x}}</h2>
+                    <p class="tm-figure-description"></p>
+                    {%if type == 1%}
+                    <a href="{{url_for('album_class',userid=userid,tt=3,classes=x)}}">View more</a>
+                    {%elif type == 2%}
+                    {% if x == '人物' %}
+                    <a href="{{url_for('index',userid=userid,tt=2)}}">View more</a>
+                    {%else%}
+                    <a href="{{url_for('album_class',userid=userid,tt=4,classes=x)}}">View more</a>
+                    {% endif %}
+                    {%else%}
+                    <a href="{{url_for('album_class',userid=userid,tt=5,classes=x)}}">View more</a>
+                    {%endif%}
+                </figcaption>
+            </figure>
+        </div>
+    </div>
+    {%endfor%}
+</div>

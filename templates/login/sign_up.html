@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta HTTP-EQUIV="content-type" CONTENT="10">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>注册</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/font-awesome.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/bootstrap.min.css') }}">
+    <script src="/static/js/send.js"></script>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/login-register.css') }}">
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/bootstrap.js"></script>
+    <script src="/static/js/login-register.js"></script>
+</head>
+<body>
+
+<div class="m-body">
+    <div class="m-wrapper">
+        <div class="row" style="margin-top: 40px;">
+            <div class="col-sm-4 col-xs-4 col-md-4 col-lg-4 col-md-offset-4 col-sm-offset-4 col-xs-offset-4">
+                <div class="m-box">
+                    <h3 class="text-center">用户注册</h3>
+                    <form method="post" action="/sign-up" enctype="multipart/form-data">
+                        <div class="input-group">
+                            <span class="input-group-addon glyphicon glyphicon-user"></span>
+                            <input type="text" class="form-control" name="username" value="" placeholder="用户名(邮箱)"
+                                   autofocus=''>
+                            <input type="text" class="form-control" name="name" value="" placeholder="昵称" autofocus="">
+                            <input type="password" class="form-control" name="pwd" value="" placeholder="密码"
+                                   autofocus="">
+                        </div>
+
+                        <div class="btn-group btn-group-justified margin-top-8x" role="group">
+                            <div class="btn-group" role="group">
+                                <input type="text" class="form-control" name="code" value="" placeholder="验证码"
+                                       autofocus="">
+                            </div>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-success  margin-8x" id="sendmail"
+                                        onclick="if($.trim($('input[name=username]').val())==''){alert('邮箱不能为空');}else {send_mail($('#sendmail'),$('input[name=username]').val(),'{{ url_for('send_mail') }}',-1);}">
+                                    发送验证码
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="btn-group btn-group-justified margin-top-8x" role="group">
+                            <div class="btn-group" role="group">
+                                <button type="submit" class="btn btn-success">注册</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

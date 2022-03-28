@@ -1,0 +1,227 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta HTTP-EQUIV="content-type" CONTENT="10">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>登录</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/font-awesome.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/buttons.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/bootstrap.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/member.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/layer.css') }}" id="layuicss-skinlayercss">
+    <style type="text/css"></style>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/layer(1).css') }}">
+    <script src="/static/js/send.js"></script>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/login-register.css') }}">
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/bootstrap.js"></script>
+    <script src="/static/js/login-register.js"></script>
+    <style type="text/css">
+        html, body, .top-nav-bar, .m-body, .m-footer, .m-wrapper {
+            background-color: #fff !important;
+        }
+
+        .top-nav-bar {
+            border-bottom: none;
+        }
+
+        .m-body {
+            min-height: inherit;
+            height: auto;
+            border-bottom: none;
+        }
+
+        .m-wrapper {
+            width: 960px !important;
+        }
+
+        .t-item {
+            margin-top: 10px;
+        }
+
+            .t-item i {
+                width: 35px;
+                height: 35px;
+                color: Gray;
+            }
+
+                .t-item i:hover {
+                    color: #4cae4c;
+                }
+
+        #wx_login {
+            display: block;
+            width: 300px;
+            height: 400px;
+            overflow: hidden;
+        }
+
+        #qq_login {
+            display: block;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+            #qq_login iframe {
+                width: 100%;
+                height: 100%;
+                border: none;
+            }
+
+    </style>
+</head>
+<body area="member">
+
+
+<div class="modal fade login" id="loginModal">
+    <div class="modal-dialog login animated">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">注册</h4>
+            </div>
+            <div class="modal-body">
+
+                <div class="box">
+                    <div class="content registerBox" style="">
+                        <div class="form">
+                            <form method="post" action="/sign-up" enctype="multipart/form-data">
+                                <input type="text" class="form-control" name="username" value="" placeholder="用户名(邮箱)"
+                                       autofocus=''>
+                                <input type="text" class="form-control" name="name" value="" placeholder="昵称"
+                                       autofocus="">
+                                <input type="password" class="form-control" name="pwd" value="" placeholder="密码"
+                                       autofocus="">
+
+                                <input class="form-control" type="password" placeholder="确认密码"
+                                       name="password_confirmation">
+
+                                <div class="btn-group btn-group-justified margin-top-8x" role="group">
+                                    <div class="btn-group" role="group">
+                                        <input type="text" class="form-control" name="code" value="" placeholder="验证码"
+                                               autofocus="">
+                                    </div>
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-success margin-8x" id="sendmail"
+                                                style="width:auto;height:auto;"
+                                                onclick="if($.trim($('input[name=username]').val())==''){alert('邮箱不能为空');}else {send_mail($('#sendmail'),$('input[name=username]').val(),'{{ url_for('send_mail') }}',-1);}">
+                                            发送验证码
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <input class="btn btn-register" type="submit" value="注册" name="commit">
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="top-nav-bar">
+    <div class="m-wrapper">
+        <div class="overflow-hidden">
+            <div class="overflow-hidden float-left padding-8x">
+                <img src="{{ url_for('static',filename='images/logo.png') }}" height="15" style="vertical-align:middle">&nbsp;
+                <span class="padding-left-8x" style="font-size: 24px;vertical-align:middle">智能云相册</span><small
+                    style="vertical-align:bottom;margin-left:10px;color:#ccc;">@小福言团队</small>
+            </div>
+            <div class="overflow-hidden float-right padding-8x">
+
+            </div>
+        </div>
+        <div></div>
+    </div>
+</div>
+
+<div class="m-body">
+    <div class="m-wrapper">
+        <div class="row" style="margin-top: 40px;">
+            <div class="col-xs-8">
+                <img src="{{ url_for('static',filename='images/login-img.png') }}" style="width:100%;">
+            </div>
+
+            <div class="col-xs-4">
+                <div class="m-box">
+                    <h3>用户登录</h3>
+                    <form action="{{url_for('sign_in')}}" method="post" enctype="multipart/form-data">
+
+                        <div class="input-group">
+                            <span class="input-group-addon glyphicon glyphicon-user"></span>
+                            <input type="text" class="form-control" name="username" value="" placeholder="用户名(邮箱)"
+                                   autofocus="">
+                        </div>
+
+                        <div class="input-group margin-top-8x">
+                            <span class="input-group-addon glyphicon glyphicon-lock"></span>
+                            <input type="password" class="form-control" name="pwd" value="" placeholder="密码">
+                        </div>
+
+                        <div class="margin-top-8x">
+                            <input type="checkbox" name="rem">&nbsp;7天内自动登陆<a href="" class="float-right">忘记密码?</a>
+                        </div>
+
+                        <div class="btn-group btn-group-justified margin-top-8x" role="group">
+                            <div class="btn-group" role="group">
+                                <button type="submit" class="btn btn-success">登录</button>
+                            </div>
+                        </div>
+                        <div class="margin-top-8x">
+                            还没注册?&nbsp;<a href="#" onclick="openRegisterModal();">马上注册</a>
+                        </div>
+                    </form>
+
+                    <div class="margin-top-8x">
+                        <small>第三方账户登录</small>
+
+                        <div class="t-item">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="m-footer">
+    <div class="m-wrapper">
+        <div class="m-copyright">
+            @小福言团队
+        </div>
+    </div>
+</div>
+
+<div style="position: static; display: none; width: 0px; height: 0px; border: none; padding: 0px; margin: 0px;">
+    <div id="trans-tooltip">
+        <div id="tip-left-top"
+             style="background: url(&quot;chrome-extension://jpjgjbbhaifmiigkopmnpbgcgmigaame/imgs/map/tip-left-top.png&quot;);"></div>
+        <div id="tip-top"
+             style="background: url(&quot;chrome-extension://jpjgjbbhaifmiigkopmnpbgcgmigaame/imgs/map/tip-top.png&quot;) repeat-x;"></div>
+        <div id="tip-right-top"
+             style="background: url(&quot;chrome-extension://jpjgjbbhaifmiigkopmnpbgcgmigaame/imgs/map/tip-right-top.png&quot;);"></div>
+        <div id="tip-right"
+             style="background: url(&quot;chrome-extension://jpjgjbbhaifmiigkopmnpbgcgmigaame/imgs/map/tip-right.png&quot;) repeat-y;"></div>
+        <div id="tip-right-bottom"
+             style="background: url(&quot;chrome-extension://jpjgjbbhaifmiigkopmnpbgcgmigaame/imgs/map/tip-right-bottom.png&quot;);"></div>
+        <div id="tip-bottom"
+             style="background: url(&quot;chrome-extension://jpjgjbbhaifmiigkopmnpbgcgmigaame/imgs/map/tip-bottom.png&quot;) repeat-x;"></div>
+        <div id="tip-left-bottom"
+             style="background: url(&quot;chrome-extension://jpjgjbbhaifmiigkopmnpbgcgmigaame/imgs/map/tip-left-bottom.png&quot;);"></div>
+        <div id="tip-left"
+             style="background: url(&quot;chrome-extension://jpjgjbbhaifmiigkopmnpbgcgmigaame/imgs/map/tip-left.png&quot;);"></div>
+        <div id="trans-content"></div>
+    </div>
+    <div id="tip-arrow-bottom"
+         style="background: url(&quot;chrome-extension://jpjgjbbhaifmiigkopmnpbgcgmigaame/imgs/map/tip-arrow-bottom.png&quot;);"></div>
+    <div id="tip-arrow-top"
+         style="background: url(&quot;chrome-extension://jpjgjbbhaifmiigkopmnpbgcgmigaame/imgs/map/tip-arrow-top.png&quot;);"></div>
+</div>
+</body>
+</html>

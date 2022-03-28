@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en" style="height: 100%;">
+<head>
+    <meta charset="UTF-8">
+    <title>{{name}}</title>
+    <style>
+        .img_frame{
+            width: 100%;
+            height: 100%;
+            position:relative;
+        }
+        .img_frame canvas{
+            -webkit-user-select: none;
+            transition: background-color 300ms;
+            -moz-background-size: contain|cover;
+            -webkit-background-size: contain|cover ;
+            -o-background-size: contain|cover;
+            background-size: contain|cover;
+            position:absolute;
+            left:50%;
+            top:50%;
+            z-index: -1;
+            transform:translate(-50%,-50%);
+        }
+        .edit:hover ol{
+            display: inline-block;
+        }
+        .edit{
+            width: 60px;
+            z-index: 105;
+            color:white;
+            position: fixed;
+            display: inline-block;
+            height: auto;
+            right:0;
+            top:30%;
+            background-color: #30574a;
+        }
+        .edit:hover{
+            width:200px;
+            background-color: rgb(144, 145, 139,0.2);
+        }
+        ol{
+            display:none;
+            margin: 0;
+            padding-left: 0;
+            padding-right: auto;
+        }
+        ol li{
+            list-style-type:none;
+            position: relative;
+        }
+        li button{
+            position: relative;
+            right: -72px;
+        }
+        button{
+            background-color: #30574a;
+            border: 1px solid transparent;
+            border-radius: 50%;
+            color:white;
+        }
+        button:hover{
+            background-color: #a6e22c;
+        }
+        .mes{
+            position: fixed;
+            right: 5%;
+            top: 5%;
+            z-index: 105;
+        }
+        .mes svg{
+            width: 30px;
+            height: 30px;
+        }
+
+
+    </style>
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/send.js"></script>
+
+
+</head>
+<body style="margin: 0px;background: #0e0e0e;height: 100%;">
+<div class="img_frame">
+    <input type="hidden" id="t" value=0>
+    <canvas id="canvas"></canvas>
+    <div class="mes" id='svg'>
+        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <circle cx="15" cy="15" r="10" stroke="#6d6d69" fill="#6d6d69"/>
+            <circle cx="10" cy="15" r="1" stroke="#ffffff" fill="#ffffff"/>
+            <circle cx="15" cy="15" r="1" stroke="#ffffff" fill="#ffffff"/>
+            <circle cx="20" cy="15" r="1" stroke="#ffffff" fill="#ffffff"/>
+        </svg>
+    </div>
+    <div id="info"
+         style="display:inline-block;color: white;position: fixed;right: 0;bottom: 0;padding-left: 50px;background-color: rgb(43, 43, 43,0.7);"></div>
+    <div class="edit" align="center">
+        <div class="text" style="display:inline-block;width: 80%;text-align: right;">编辑</div>
+        <ol>
+            <li>
+                <span class="value" style="color:white">5</span>
+                <input type="range" max="100" min="1" id="depth" step="1" value="5" onchange="rangeSwitch()"
+                       style="float:left;">
+                <button style="right:0"
+                        onclick="$('#t').val(1);edit_img('{{url_for('editImage',type=1)}}',{{img.id}},img,e,$('#depth'))">
+                    素描
+                </button>
+            </li>
+            <li>
+                <button onclick="$('#t').val(2);edit_img('{{url_for('editImage',type=2)}}',{{img.id}},img,e,$('#depth'))">
+                    手绘
+                </button>
+            </li>
+            <li>
+                <button onclick="$('#t').val(3);edit_img('{{url_for('editImage',type=3)}}',{{img.id}},img,e,$('#depth'))">
+                    磨皮
+                </button>
+            </li>
+            <li>
+                <button onclick="compare()">对比</button>
+            </li>
+            <li>
+                <button onclick="e.delete();">
+                    删除
+                </button>
+            </li>
+        </ol>
+    </div>
+</div>
+<script type="text/javascript">
+    var e={
+        last:"",
+        source:'',
+        x1:0,
+        y1:0,
+        x2:0,
+        y2:0,
+        w:0,
+        h:0,
+        xx1:0,
+        yy1:0,
+        xx2:0,
+        yy3:0,
+        ww:0,
+        hh:0,
+        delete:function move(){
+            if(e.xx1+e.w>0){
+                ctx.clearRect(e.xx1,e.yy1,e.ww,e.hh);
+                ctx.clearRect(e.xx2,e.yy2,e.ww,e.hh);
+                e.xx1-=5;
+                e.xx2+=5;
+                e.yy1+=5;
+                e.yy2-=5;
+                ctx.drawImage(img,e.x1,e.y1,e.w,e.h,e.xx1,e.yy1,e.ww,e.hh);
+                ctx.drawImage(img,e.x2,e.y2,e.w,e.h,e.xx2,e.yy2,e.ww,e.hh);
+                setTimeout(move, 10);
+            }else{
+                send_del('{{url_for('deleteImage')}}',{{img.id}});
+            }
+        }
+    }
+    var canvas = document.getElementById('canvas');
+    var ctx = canvas.getContext('2d');
+    var img = new Image();
+    compare = function (){
+        if(e.last!=''){
+            if(img.src==e.source){
+                img.src=e.last;
+            }else{
+                img.src=e.source;
+            }            
+        }
+    
+    };
+
+    rangeSwitch=function () {
+        var x=$("#depth").val();
+        $("p").css({"width":(x/10)*500*0.96});//乘的0.96是因为要不然绿色的颜色会有部分盖住滑动按钮（500-20）/500=0.96;
+        $(".value").html(x);
+    };
+    function getSize(len){
+        console.log(len.length);
+        var a1 = len/1024;
+        if(a1<1024){
+            return a1.toFixed(2)+"KB";
+        }else{
+            var a2 = a1/1024;
+            return a2.toFixed(2)+"MB";
+        }
+    }
+    window.onload=function(){
+        var svg=$('#svg');
+        svg.bind('mouseover',function(event){
+            $('#info').append("<p>图片名 : {{img.name}}</p>");
+            $('#info').append("<p>上传时间 : {{img.datetime}}</p>");
+            $('#info').append("<p>分辨率 : "+img.width+' * '+img.height+"</p>");
+            // $('#info').append("<p>大小 : "+getSize("{{img.content}}".length)+"</p>");
+        });
+        svg.bind('mouseout',function(event){
+            $('#info').empty();
+        });
+        img.onload = function(){
+            var w = img.width;
+            var h = img.height;
+            canvas.width = document.body.clientWidth*0.9;
+            canvas.height = document.body.clientHeight*0.9;
+            var ww = canvas.width;
+            var hh = canvas.height;
+            var h_=0;
+            var w_=0;
+            if(w<=ww&&h<=hh){
+                h_=h;
+                w_=w;
+            }else{
+                var scale = Math.min(ww*0.99/w,hh*0.99/h);
+                h_=h*scale;
+                w_=w*scale;                
+            }
+            e.x2=w/2;
+            e.w=w/2;
+            e.h=h;
+            e.xx1=(ww-w_)/2;
+            e.xx2=ww/2;
+            e.ww=w_/2;
+            e.hh=h_;
+            e.yy1=(hh-h_)/2;
+            e.yy2=(hh-h_)/2;
+                            ctx.drawImage(img,e.x1,e.y1,e.w,e.h,e.xx1,e.yy1,e.ww,e.hh);
+                ctx.drawImage(img,e.x2,e.y2,e.w,e.h,e.xx2,e.yy2,e.ww,e.hh);
+        }
+        e.source = "{{getbase64(img.content)}}";
+        img.src = e.source;
+    }
+    
+
+
+</script>
+</body>
+</html>

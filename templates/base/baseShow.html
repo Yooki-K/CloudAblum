@@ -1,0 +1,74 @@
+<div class="clearfix">
+    <label id="upload-btn" class="add"></label>
+    <li class="nav-item dropdown" style="position:fixed;right: 10px;">
+        <button class="edit" style="padding:0 5px;z-index:2000;" data-counter="0">编辑</button>
+        <button class="send" style="display:none;" data-counter="0">&#10004;</button>
+        <div>
+            <button onclick="deleteImgs($('.show1.selected'),'{{url_for('deleteImage')}}')"
+                    style="width:45px;background:crimson;display:none;z-index:2000;" id="delete">删除
+            </button>
+        </div>
+        <div>
+            <button onclick="downloadFiles($('.show1.selected'))"
+                    style="width:45px;background:yellowgreen;display:none;z-index:2000;" id="download">下载
+            </button>
+        </div>
+        {% if tt == 1 %}
+        <div>
+            <button onclick="provideTags({{tagList(userid,tt)}},$('.show1.selected'),'{{url_for('operate_ablum',t='add')}}',this.id)"
+                    style="width:45px;background:blue;display:none;z-index:2000;" id="ADD">添加
+            </button>
+        </div>
+        {% endif %}
+        {% if tt == 3%}
+        <div>
+            <button onclick="provideTags({{tagList(userid,tt)}},$('.show1.selected'),'{{url_for('update_tag',t=tt)}}',this.id)"
+                    style="width:45px;background:blue;display:none;z-index:2000;" id="move">移动
+            </button>
+        </div>
+        {% endif %}
+        {% if tt == 4%}
+        <div>
+            <button onclick="operateAblum($('.show1.selected'),'{{url_for('operate_ablum',t='remove')}}',this.id,'{{list(file_list.keys())[0]}}')"
+                    style="width:45px;background:blue;display:none;z-index:2000;" id="remove">移除
+            </button>
+        </div>
+        {% endif %}
+
+    </li>
+
+    </li>
+</div>
+{% if len(path) != 0 %}
+
+<div style="display:flex;justify-content:center;flex-direction:column;">
+    <div class="center-block">
+        <h2 class="center-block">精彩时刻</h2>
+        <a onclick="$(this).next().hide();$(this).hide();$(this).prev().hide();" style="right: 50%;"><i
+                class="close">x</i></a>
+        <video src="{{path[0]}}" controls="controls" width="150px" height="150px" id="vv"></video>
+    </div>
+</div>
+{% endif %}
+
+
+<ul class="cool">
+    {%for x in file_list%}
+    <div>
+        <li class="date{{loop.index0}}">
+            <span>{{x}}</span></li>
+    </div>
+    <div>
+        {%for y in file_list[x]%}
+        <div class="need">
+            <a class="show_link" href="{{url_for('showImage',userid=userid,imgid=y.id)}}" target="_blank">
+                <img src="{{getbase64(y.content)}}" style="background-image:{{getbase64(y.content)}};z-index:0;"
+                     class="show1" title="{{y.name}}" id="{{y.id}}">
+            </a>
+        </div>
+
+        {%endfor%}
+    </div>
+    {%endfor%}
+</ul>
+
