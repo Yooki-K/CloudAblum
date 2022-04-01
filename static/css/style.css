@@ -3248,7 +3248,7 @@ header.navbar {
   .breadcrumb-item + .breadcrumb-item:hover::before {
     text-decoration: none; }
   .breadcrumb-item.active {
-    color: #b0bec5; }
+    color: #2fb7e2; }
 
 .breadcrumb {
   position: relative;

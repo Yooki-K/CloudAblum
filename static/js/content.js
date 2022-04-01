@@ -5,7 +5,7 @@
  * @version $Id$
  */
 
-function provideTags(tags,e,url,type){
+function provideTags(tags,e,url,type,albumName){
 	if (!document.getElementById('tc')){
 		$('body').append('<div id="tc"></div>');
 		$('#tc').css('position','fixed');
@@ -25,8 +25,13 @@ function provideTags(tags,e,url,type){
 			$(".tags").bind("click",function(event){updateTags(e,url,event);$('#tc').remove();});
 		}else{
 			if(type == 'ADD'){
-				$(".tags").bind("click",function(event){operateAblum(e,url,'add',event);$('#tc').remove();});
+				$(".tags").bind("click",function(event){operatealbum(e,url,'add',event);$('#tc').remove();});
+			}else{
+                if(type == 'move_'){
+                    $(".tags").bind("click",function(event){operatealbum(e,url,'move',event,albumName);$('#tc').remove();});
+                }
 			}
+
 		}
 		
 	}else{

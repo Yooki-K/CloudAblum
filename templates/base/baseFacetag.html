@@ -40,10 +40,10 @@
                     <h2 class="tm-figure-title" onclick="">{%if x[0:10] == '!@#unnamed'
                         %}{{'未命名'}}{%else%}{{x}}{%endif%}</h2>
                     <p class="tm-figure-description"></p>
-                    {%if type == 1%}
-                    <a href="{{url_for('album_class',userid=userid,tt=3,classes=x)}}">View more</a>
+                    {%if tt == 2%}
+                    <a href="{{url_for('album_class',userid=userid,tt=tt,classes=x)}}">View more</a>
                     {%else%}
-                    <a href="{{url_for('album_class',userid=userid,tt=4,classes=x)}}">View more</a>
+                    <a href="{{url_for('album_class',userid=userid,tt=tt,classes=x)}}">View more</a>
                     {%endif%}
                 </figcaption>
             </figure>

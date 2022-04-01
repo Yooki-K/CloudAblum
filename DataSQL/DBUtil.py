@@ -96,7 +96,7 @@ def group_by_class(session, u: User):
 
 def group_by_album(session, u: User):
     result = {}
-    for x in session.query(Ablum).filter(Ablum.user == u.user).all():
+    for x in session.query(Album).filter(Album.user == u.user).all():
         cover = x.imgs.first()
         if cover is None:
             cover = 'none'
@@ -118,10 +118,10 @@ def group_by_special_tag(session, u: User, classes):
     return result
 
 
-def group_by_special_ablum(session, u: User, ablum):
-    r = session.query(Ablum).filter(Ablum.user == u.user, Ablum.name == ablum).first()
+def group_by_special_album(session, u: User, album):
+    r = session.query(Album).filter(Album.user == u.user, Album.name == album).first()
     if r is not None:
-        result = {ablum: r.imgs.all()}
+        result = {album: r.imgs.all()}
         return result
     else:
         return None
@@ -153,11 +153,11 @@ def update_tagName(session, old_tagName, new_tagName):
 
 
 # 用户创建自定义相册
-def create_ablum(session, u: User, ablumName):
-    r = session.query(Ablum).filter(Ablum.name == ablumName).first()
+def create_album(session, u: User, albumName):
+    r = session.query(Album).filter(Album.name == albumName).first()
     if r is None:
-        ablum = Ablum(user=u.user, name=ablumName)
-        session.add(ablum)
+        album = Album(user=u.user, name=albumName)
+        session.add(album)
         session.commit()
         return True
     else:
@@ -165,14 +165,14 @@ def create_ablum(session, u: User, ablumName):
 
 
 # 用户删除自定义相册 已级联删除相关关联
-def delete_ablum(session, u: User, ablum_name):
-    session.query(Ablum).filter(Ablum.name == ablum_name).delete()
+def delete_album(session, u: User, album_name):
+    session.query(Album).filter(Album.name == album_name).delete()
     session.commit()
 
 
 # 用户相册添加照片
-def add_imgs(session, id_list, ablum_name):
-    a = session.query(Ablum).filter(Ablum.name == ablum_name).first()
+def add_imgs(session, id_list, album_name):
+    a = session.query(Album).filter(Album.name == album_name).first()
     if a is None:
         return
     for x in id_list:
@@ -182,9 +182,23 @@ def add_imgs(session, id_list, ablum_name):
     session.commit()
 
 
+# 用户相册移动照片
+def move_imgs(session, id_list, album_name1, album_name2):
+    a = session.query(Album).filter(Album.name == album_name1).first()
+    b = session.query(Album).filter(Album.name == album_name2).first()
+    if a is None:
+        return
+    for x in id_list:
+        r = session.query(Img).filter(Img.id == x).first()
+        if r is not None:
+            a.imgs.remove(r)
+            b.imgs.append(r)
+    session.commit()
+
+
 # 用户相册移除照片
-def remove_imgs(session, id_list, ablum_name):
-    a = session.query(Ablum).filter(Ablum.name == ablum_name).first()
+def remove_imgs(session, id_list, album_name):
+    a = session.query(Album).filter(Album.name == album_name).first()
     if a is None:
         return
     for x in id_list:
@@ -195,11 +209,11 @@ def remove_imgs(session, id_list, ablum_name):
 
 
 # 用户相册重命名
-def rename_ablum(session, name1, name2):
-    r = session.query(Ablum).filter(Ablum.name == name2).first()
+def rename_album(session, name1, name2):
+    r = session.query(Album).filter(Album.name == name2).first()
     if r is not None:
         return False
-    r = session.query(Ablum).filter(Ablum.name == name1).first()
+    r = session.query(Album).filter(Album.name == name1).first()
     r.name = name2
     session.commit()
     return True
@@ -327,7 +341,8 @@ def delete_img(session, u: User, img_id: list):  # todo
         if img is None:
             continue
         if img.faceid != None:
-            rr = session.query(Img).filter(Img.facetag == r.facetag, Img.user == u.user, Img.id != r.id).first()
+            rr = session.query(Img).filter(Img.facetag == img.facetag, Img.user == u.user, Img.id != img.id,
+                                           Img.deletetime == None).first()
             if rr is not None:
                 rr.faceid = img.faceid
             img.faceid = None
@@ -352,19 +367,25 @@ def delete_timeout(session, u: User = None):
 
 
 # 精彩一刻
+# def aiVideo(session, u: User):
+#     styles = ['可爱宝贝', '美食一刻', '萌宠当家', '我爱动漫']
+#     styles_of_labels = {styles[0]: [['孩子', '学步的儿童'], []], styles[1]: [['食物', '菜式'], []], styles[2]: [['狗'], []],
+#                         styles[3]: [['漫画', '日本动画片', '漫画草图'], []]}
+#     r = session.query(Img).filter(Img.user == u.user, Img.deletetime == None, Img.description != None).all()
+#     for x in r:
+#         description = x.description.split(' ')
+#         for y in styles_of_labels:
+#             if len(set(description).intersection(set(styles_of_labels[y][0]))) > 0:
+#                 styles_of_labels[y][1].append(x)
+#
+#     return styles_of_labels
 def aiVideo(session, u: User):
-    styles = ['可爱宝贝', '美食一刻', '萌宠当家', '我爱动漫']
-    styles_of_labels = {styles[0]: [['孩子', '学步的儿童'], []], styles[1]: [['食物', '菜式'], []], styles[2]: [['狗'], []],
-                        styles[3]: [['漫画', '日本动画片', '漫画草图'], []]}
-    r = session.query(Img).filter(Img.user == u.user, Img.deletetime == None, Img.description != None).all()
+    r = session.query(Img.facetag).filter(Img.user == u.user).group_by(Img.facetag).all()
+    styles = [x.facetag for x in r]
+    styles_of_labels = {}
+    for x in styles:
+        styles_of_labels[x] = []
+    r = session.query(Img).filter(Img.user == u.user, Img.deletetime == None, Img.facetag != None).all()
     for x in r:
-        description = x.description.split(' ')
-        for y in styles_of_labels:
-            if len(set(description).intersection(set(styles_of_labels[y][0]))) > 0:
-                styles_of_labels[y][1].append(x)
-
+        styles_of_labels[x.facetag].append(x)
     return styles_of_labels
-
-
-if __name__ == '__main__':
-    pass

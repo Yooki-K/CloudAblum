@@ -13,7 +13,7 @@ class User(db.Model):
     # space = db.Column(db.Integer, default=1024 * 1024 * 1024)  # 内存初始1GB
     # excluded = db.Column(db.Integer, default=0)
     imgs = db.relationship('Img', backref='master', lazy='dynamic')
-    albums = db.relationship('Ablum', backref='myalbums', lazy='dynamic')
+    albums = db.relationship('Album', backref='myalbums', lazy='dynamic')
 
     def __repr__(self):
         return '<User {}>'.format(self.user)
@@ -31,10 +31,10 @@ class User(db.Model):
         return User(user=u['user'], id=u['id'], name=u['name'], facesetid=u['facesetid'])
 
 
-tb_ablum_img = db.Table('ablum_img',
+tb_album_img = db.Table('album_img',
                         db.Column('imgid', db.Integer, db.ForeignKey('UserImg.id', ondelete='CASCADE'),
                                   primary_key=True),
-                        db.Column('ablumid', db.Integer, db.ForeignKey('UserAblum.id', ondelete='CASCADE'),
+                        db.Column('albumid', db.Integer, db.ForeignKey('UserAlbum.id', ondelete='CASCADE'),
                                   primary_key=True)
                         )
 
@@ -54,7 +54,7 @@ class Img(db.Model):
     faceid = db.Column(db.String(64))
     facetag = db.Column(db.String(64))
     deletetime = db.Column(db.DateTime)
-    ablums = db.relationship('Ablum', secondary=tb_ablum_img,
+    albums = db.relationship('Album', secondary=tb_album_img,
                              backref='userimgs', lazy='dynamic')
 
     # __repr__()方法显示一个可读字符串，虽然不是完全必要，不过用于调试、测试是很不错的。
@@ -75,18 +75,18 @@ class Code(db.Model):
         return '<EmailCode {} {} {}>'.format(self.user, self.code, self.sendTime)
 
 
-class Ablum(db.Model):
-    __tablename__ = 'UserAblum'
+class Album(db.Model):
+    __tablename__ = 'UserAlbum'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user = db.Column(db.String(64), db.ForeignKey('Users.user', ondelete='CASCADE'))
     name = db.Column(db.String(64))
-    imgs = db.relationship(Img, secondary=tb_ablum_img,
-                           backref=db.backref('userablums', lazy='dynamic'), lazy='dynamic',
+    imgs = db.relationship(Img, secondary=tb_album_img,
+                           backref=db.backref('userAlbums', lazy='dynamic'), lazy='dynamic',
                            )
 
     def __repr__(self):
-        return '<UserAblum {} {} {}>'.format(self.user, self.id, self.name)
+        return '<UserAlbum {} {} {}>'.format(self.user, self.id, self.name)
 
 
 # 重新创建表

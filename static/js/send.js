@@ -137,7 +137,37 @@ function updateTags(e,url,event){
           }
       })
 }
-function operateAblum(e,url,t,event){
+function create_album(albumname,url){
+    $.ajax({
+        type:'POST',
+        url:url,
+        processData:false,
+        contentType:false,
+        data:JSON.stringify({'albumName':albumname}),
+        contentType:'application/json',
+        success:function(data){
+            alert(data);
+            window.location.reload();
+        }
+    })
+}
+
+function delete_album(albumname,url){
+    $.ajax({
+        type:'POST',
+        url:url,
+        processData:false,
+        contentType:false,
+        data:JSON.stringify({'albumName':albumname}),
+        contentType:'application/json',
+        success:function(data){
+            alert(data);
+            window.location.reload();
+        }
+    })
+}
+
+function operatealbum(e,url,t,event,albumName){
     var a = new Array();
     e.each(function(){
         a.push(this.id);
@@ -148,10 +178,11 @@ function operateAblum(e,url,t,event){
           url:url,
           processData:false,
           contentType:false,
-          data:JSON.stringify({'id_list':a,'ablumName':event.target.innerText}),
+          data:JSON.stringify({'id_list':a,'albumName':event.target.innerText}),
           contentType:'application/json',
           success:function(data){
               alert(data);
+              window.location.reload();
           }
       })
   }else if(t == 'remove'){
@@ -160,23 +191,36 @@ function operateAblum(e,url,t,event){
           url:url,
           processData:false,
           contentType:false,
-          data:JSON.stringify({'id_list':a,'ablumName':event}),
+          data:JSON.stringify({'id_list':a,'albumName':event}),
           contentType:'application/json',
           success:function(data){
               alert(data);
               window.location.reload();
           }
       })
+  }else if(t == 'move'){
+        $.ajax({
+          type:'POST',
+          url:url,
+          processData:false,
+          contentType:false,
+          data:JSON.stringify({'id_list':a,'albumName1':albumName,'albumName2':event.target.innerText}),
+          contentType:'application/json',
+          success:function(data){
+              alert(data);
+              window.location.reload();
+          }
+        })
   }
 }
-function AlbumRename(name1,name2,url)
+function albumRename(name1,name2,url)
 {
     $.ajax({
           type:'POST',
           url:url,
           processData:false,
           contentType:false,
-          data:JSON.stringify({'ablumName1':name1,'ablumName2':name2}),
+          data:JSON.stringify({'albumName1':name1,'albumName2':name2}),
           contentType:'application/json',
           success:function(data){
               alert(data);

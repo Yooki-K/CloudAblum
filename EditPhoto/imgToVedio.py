@@ -1,7 +1,6 @@
 # @description：把照片合成视频。
 
 from PIL import ImageDraw, ImageFont
-from flask import url_for
 from moviepy.editor import *
 from DataSQL.DBUtil import *
 
@@ -12,8 +11,7 @@ def pil_add_text(img, text, position: tuple, textColor=(0, 255, 0), textSize=20)
     # 创建一个可以在给定图像上绘图的对象
     draw = ImageDraw.Draw(img)
     # 字体的格式
-    fontStyle = ImageFont.truetype(
-        url_for('static', filename='fonts/淘气黑体.ttf'), textSize, encoding="utf-8")
+    fontStyle = ImageFont.truetype('static/fonts/淘气黑体.ttf', textSize, encoding="utf-8")
     # 绘制文本
     draw.text(position, text, textColor, font=fontStyle)
     return img
@@ -35,7 +33,7 @@ def resize_bgm(bgm_path, begin, longtime) -> AudioFileClip:
 
 def add_music(temp_path, video_path):
     # 随机获得bgm文件
-    p = url_for('static', filename='music\\music')
+    p = 'static\\music\\music'
     l = os.listdir(p)
     index = random.randint(0, len(l) - 1)
     bgm_path = os.path.join(p, l[index])
@@ -55,12 +53,13 @@ def write_video(session, uid, file_list, style, is_add_text=True, isBgm=True, sa
         return
     fps, size, file_list = 1.5, (800, 800), file_list
     # AVI格式编码输出 MJPG
-    four_cc = cv2.VideoWriter_fourcc(*'MJPG')
+    four_cc = cv2.VideoWriter_fourcc('X', '2', '6', '4')
     if save_name is None:
-        save_name = '%d#%s#%s.avi' % (
+        save_name = '%d_%s_%s.mp4' % (
             uid, time.strftime('%Y-%m-%d-%H:%M:%S', time.localtime(time.time())).replace(':', '-'), style)
-    save_path = url_for('static', filename='temp\\video') + '\\' + save_name
-    temp_path = url_for('static', filename='temp\\temp') + '\\' + save_name
+    save_path = 'static\\temp\\video\\' + save_name
+    temp_path = 'static\\temp\\temp\\' + save_name
+    print(save_path)
     if isBgm:
         video_writer = cv2.VideoWriter(temp_path, four_cc, float(fps), size)
     else:

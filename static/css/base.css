@@ -13,7 +13,7 @@
 }
 .nav-item div button{
     position:relative;
-    right:-60px;
+    right:0;
 }
 .create{
     width: 50px;

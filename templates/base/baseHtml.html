@@ -24,6 +24,9 @@
 
     <!-- Main styles for this application -->
     <link href="{{url_for('static', filename='css/style.css')}}" rel="stylesheet">
+    <script src="{{url_for('static', filename='js/jquery.min.js')}}"></script>
+    <script src="{{url_for('static', filename='js/bootstrap.js')}}"></script>
+
     <style>
         .upload-input{
             margin-top:20px;
@@ -57,9 +60,7 @@
         img{
             max-height: 180px;
         }
-        .nav-it{
-            display:none;
-        }
+
         .item{
             position: relative;
             margin: 0;
@@ -260,11 +261,36 @@ button.send:after {
 button.send.selected:after {
   opacity: 1;
 }
+    #menu {
+		width: 0;
+		/*设置为0 隐藏自定义菜单*/
+		height: 80px;
+		overflow: hidden;
+		/*隐藏溢出的元素*/
+		box-shadow: 0 1px 1px #888, 1px 0 1px #ccc;
+		position: absolute;
+        background-color: rgba(255, 255, 255, 0.801);
+        border-radius: 3px;
+        z-index: 99;
+        display: block;
+        border: none;
+		/*自定义菜单相对与body元素进行定位*/
+	}
 
+	.clickmenu {
+		width: 130px;
+		height: 40px;
+		line-height: 25px;
+		padding: 0 10px;
+	}
 
+    .clickmenu:hover{
+        height: 40px;
+        background-color: white;
+    }
 
     </style>
-    <title>智能云相册-个人中心</title>
+    <title>智能云相册-个人中心{{tt}}</title>
 
 </head>
 
@@ -286,7 +312,7 @@ button.send.selected:after {
             <a class="btn btn-primary" style="padding-top:2%;padding-bottom:2%;" href="#">设置</a>
         </li>
     </ul>
-    <ul class="nav navbar-nav ml-auto">
+    <ul class="nav navbar-nav ml-auto" style="display:block;">
         <li class="nav-item hidden-md-down">
             <a class="nav-link" href="#"><i class="icon-bell"></i><span
                     class="badge badge-pill badge-danger">5</span></a>
@@ -409,6 +435,72 @@ button.send.selected:after {
     </div>
 </div>
 
+<div class="modal fade" id="createAlbum" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">新建相册</h4>
+            </div>
+            <div class="modal-body" style="text-align: center;">相册名字：<input type="text" id="CreateAlbumName"
+                                                                            name="albumName">
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button type="button" onclick="createAlbum();" class="btn btn-primary">确定</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal -->
+    </div>
+</div>
+
+
+<!--创建相册-->
+<script>
+function createAlbum()
+{
+    var _url = '/operate/album/create';
+    var albumName = $('#CreateAlbumName').val();
+    create_album(albumName,_url);
+}
+
+</script>
+
+
+<!--右键事件-->
+<div class="dropdown-menu dropdown-menu-right" id="menu" style="height:0">
+    <a class="dropdown-item" id="upload-btn" href="#"><i class="fa fa-upload"></i> 上传照片</a>
+    <a class="dropdown-item edit" href="#"><i class="fa fa-pencil"></i> 编辑模式</a>
+    <a class="dropdown-item" data-toggle="modal" data-target="#createAlbum" href="#"><i class="fa fa-plus"></i> 新建相册</a>
+</div>
+
+<script>
+    window.oncontextmenu = function(e) {
+        //取消默认的浏览器自带右键 很重要！！
+        e.preventDefault();
+
+        //获取我们自定义的右键菜单
+        var menu = document.querySelector("#menu");
+
+        //根据事件对象中鼠标点击的位置，进行定位
+        menu.style.left = e.clientX + 'px';
+        menu.style.top = e.clientY + 'px';
+
+        //改变自定义菜单的宽，让它显示出来
+        menu.style.width = '125px';
+        if($('.dddd').length > 0)
+            menu.style.height = '160px';
+        else
+            menu.style.height = '120px';
+    }
+    //关闭右键菜单，很简单
+    window.onclick = function(e) {
+        //用户触发click事件就可以关闭了，因为绑定在window上，按事件冒泡处理，不会影响菜单的功能
+        document.querySelector('#menu').style.height = 0;
+        $('.dddd').remove();
+    }
+
+</script>
+
 
 <div class="app-body">
     <div class="sidebar">
@@ -421,16 +513,16 @@ button.send.selected:after {
                 <hr style="filter: progid:dximagetransform.microsoft.glow(color=" #987cb9,strength=10)" width="100%"
                     color="#987cb9" size=1>
                 <li class="item nav-dropdown">
-                    <a class="nav-link nav-dropdown-toggle" href="javascript:void(0)"><i class="icon-arrow-down"></i>&nbsp&nbsp更多</a>
-                    <ul class="nav-it nav-dropdown-items">
+                    <!-- <a class="nav-link nav-dropdown-toggle" href="javascript:void(0)"><i class="icon-arrow-down"></i>&nbsp&nbsp更多</a> -->
+                    <ul class="nav-it nav-dropdown-items" style="display: block;">
                         <li class="nav-item">
                             <a class="nav-link" href="{{url_for('index',userid=userid,tt=1)}}"><i
                                     class="icon-puzzle"></i> 主页</a>
                         </li>
-                        <!--                        <li class="nav-item">-->
-                        <!--                            <a class="nav-link" href="{{url_for('index',userid=userid,tt=2)}}"><i-->
-                        <!--                                    class="icon-people"></i> 人物</a>-->
-                        <!--                        </li>-->
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{url_for('index',userid=userid,tt=2)}}"><i
+                                    class="icon-people"></i> 人物</a>
+                        </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{url_for('index',userid=userid,tt=3)}}"><i
                                     class="icon-emotsmile"></i> 分类</a>
@@ -444,7 +536,6 @@ button.send.selected:after {
                 <hr style="filter: progid:dximagetransform.microsoft.glow(color=" #987cb9,strength=10)" width="100%"
                     color="#987cb9" size=1>
                 <li class="nav-item nav-dropdown">
-                    <a class="nav-link nav-dropdown-toggle" href="#"><i class="icon-star"></i> 收藏</a>
                     <ul class="nav-dropdown-items">
                         <li class="nav-item">
                             <a class="nav-link" href="icons-font-awesome.html"><i class="icon-star"></i> Font
@@ -456,8 +547,6 @@ button.send.selected:after {
                         </li>
                     </ul>
                 </li>
-                <hr style="filter: progid:dximagetransform.microsoft.glow(color=" #987cb9,strength=10)" width="100%"
-                    color="#987cb9" size=1>
                 <li class="nav-item">
                     <a class="nav-link" href="{{url_for('recycle',userid=userid)}}"><i class="icon-calculator"></i> 回收站
                     </a>
@@ -476,7 +565,8 @@ button.send.selected:after {
                     其它
                 </li>
                 <li class="nav-item nav-dropdown">
-                    <a class="nav-link nav-dropdown-toggle" href="/"><i class="icon-star"></i> 关于我们</a>
+                    <a class="nav-link nav-dropdown-toggle" href="https://github.com/ky-sfms/CloudAblum"
+                       target="_blank"><i class="icon-star"></i> 关于我们</a>
                     <ul class="nav-dropdown-items">
                         <li class="nav-item">
                             <a class="nav-link" href="pages-login.html" target="_top"><i class="icon-star"></i>
@@ -510,9 +600,24 @@ button.send.selected:after {
         <!-- Breadcrumb -->
         <ol class="breadcrumb">
             <li class="breadcrumb-item">云相册</li>
-            <li class="breadcrumb-item"><a href="#">用户</a>
-            </li>
-            <li class="breadcrumb-item active">相册</li>
+            <li class="breadcrumb-item">用户</li>
+            <li class="breadcrumb-item"><a href="{{url_for('index',userid=userid,tt=1)}}">主页</a></li>
+            {%if tt == 2%}
+            <li class="breadcrumb-item"><a href="{{url_for('index',userid=userid,tt=tt)}}">人物</a></li>
+            {%endif%}
+            {%if tt == 3%}
+            <li class="breadcrumb-item"><a href="{{url_for('index',userid=userid,tt=tt)}}">分类</a></li>
+            {%endif%}
+            {%if tt == 4%}
+            <li class="breadcrumb-item"><a href="{{url_for('index',userid=userid,tt=tt)}}">相册</a></li>
+            {%endif%}
+
+            {%if albumName%}
+            <li class="breadcrumb-item active">{{albumName}}</li>
+            {%endif%}
+            {%if classes%}
+            <li class="breadcrumb-item active">{{classes}}</li>
+            {%endif%}
 
             <!-- Breadcrumb Menu-->
             <li class="breadcrumb-menu hidden-md-down">
@@ -529,9 +634,8 @@ button.send.selected:after {
         </div>
     </main>
 </div>
-
-<script src="/static/js/app.js"></script>
 <script src="/static/js/jquery.min.js"></script>
+<script src="/static/js/app.js"></script>
 <script src="/static/js/webuploader.min.js"></script>
 <script src="/static/js/hashmap.js"></script>
 <script src="/static/js/send.js"></script>
@@ -542,6 +646,7 @@ button.send.selected:after {
         var $list=$("#thelist table>tbody");
         var state = 'pending';//初始按钮状态
         $(function(){
+                //重命名按钮响应
             $(".rename").bind("click",function(event){
                if($(this).prev().val()==''){
                     alert('名字不能为空');
@@ -558,25 +663,30 @@ button.send.selected:after {
             $(".rename-toggle").bind("click",function(event){
                 $(this).next().slideToggle();
             });
+            // 检测更新
             var index = document.cookie.indexOf("isDetected=");
             if(index!=-1){
                 detection();
                 clearCookie('isDetected');
             }
+            //下拉按钮响应
             $(".dropdown-toggle").bind("click",function(event){
                 $("#todolist").slideToggle("slow");
             });
+            // 上传按钮响应，上传窗口显示
             $("#upload-btn").bind("click",function(event){
                 $("#upload").show();
             });
+            // 关闭上传窗口
             $("#cancel-upload").bind("click",function(event){
                 setCookie('isDetected','true',1);
                 $("#upload").hide();
                 location.reload();
             });
-            $(".nav-dropdown").hover(function(){
-                $(this).children(".nav-it").slideToggle("slow");
-            });
+            // $(".nav-dropdown").hover(function(){
+            //     $(this).children(".nav-it").slideToggle("slow");
+            // });
+            // 鬼知道是哪个地方的js
             $("#thelist").bind("dragover",function(event){
                 event.preventDefault();
                 $(this).addClass("UploadAreaDragOver");
@@ -587,7 +697,7 @@ button.send.selected:after {
                 $(this).removeClass("UploadAreaDragOver");
                 $("#thelist").css("background-color","#fbfbfb")
             });
-
+            // 编辑模式按钮的响应
             $('.edit').click(function () {
                 if($('.send').is(":hidden")){
                     $('.send').show();
@@ -617,7 +727,7 @@ button.send.selected:after {
                 $('#ADD').hide();
                 $('#remove').hide();
             }
-            // all item selection
+            // 全选按钮
             $('.send').click(function () {
               if ($('.show1.selected').length == 0) {
                 $('.show1').addClass('selected');
@@ -689,7 +799,7 @@ button.send.selected:after {
 
 </script>
 <script type="text/javascript">
-var $btn=$("#btn");
+    var $btn=$("#btn");
     var count=0;
     var num=0;
     var map=new HashMap();

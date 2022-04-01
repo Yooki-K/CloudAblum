@@ -7,22 +7,90 @@
     <meta name="description" content="">
     <meta name="keywords" content="">
     <link href="" rel="stylesheet">
+    <link href="{{url_for('static', filename='css/font-awesome.min.css')}}" rel="stylesheet">
     <script type="text/javascript" charset="utf-8"
             src="https://s3.pstatp.com/cdn/expire-1-M/jquery/3.3.1/jquery.min.js"></script>
     <script type="text/javascript" charset="utf-8" src="/static/js/send.js"></script>
+    <style>
+        .main{
+            text-align: center; /*让div内部文字居中*/
+            background-color: #fff;
+            border-radius: 20px;
+            width: 700px;
+            height: 500px;
+            margin: auto;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+        .ii {
+          position: fixed;
+          top: 50%;
+          font-size:50px;
+          background-color:transparent;
+          border-style:none;
+
+        -webkit-transform: translateX(-50%) translateY(-50%);
+        }
+        .left{
+            margin-left:100px;
+        }
+        .right{
+            margin-left:-100px;
+        }
+
+    </style>
 </head>
 <body>
-<div style="display:flex;justify-content:center;flex-direction:column;">
-    {%for x in path%}
-    <video src="{{ url_for('static',filename=x) }}" controls="controls" width="150px" height="150px" style="float: right;
-    right: 0;
-    bottom: 0;
-    /* display: none; */
-    position: fixed"></video>
-    {%endfor%}
+
+<div class="main">
+    <button class="fa fa-chevron-left ii right" aria-hidden="true" onclick="pre()"></button>
+    <video controls="controls" width="90%" height="100%" id="video" loop>
+        <source src="{{ url_for('static',filename=path[0]) }}" type="video/mp4"/>
+    </video>
+
+    <button class="fa fa-chevron-right ii left" aria-hidden="true" onclick="next()"></button>
+    <p id="title">(1/{{len(path)}})</p>
 </div>
 <script type="text/javascript">
+    var a =new Array();
+    {%for x in path%}
+    a.push('{{ url_for('static',filename=x) }}')
+    {%endfor%}
+    var len = a.length;
+    var index=0;
+    var v = document.getElementById("video");
+$(function(){
+    // 视频渲染监听视频播放结束
 
+<!--    v.addEventListener('play',function () {-->
+<!--        var i = window.setInterval(function () {-->
+<!--            if(v.ended){-->
+<!--                index=(index+1)%len;-->
+<!--                v.src=a[index]-->
+<!--                v.play();-->
+<!--            }-->
+<!--        }, 20);-->
+
+<!--    });-->
+})
+function next(){
+    index=(index+1)%len;
+    v.src=a[index]
+    v.play();
+    document.getElementById('title').innerHTML = '('+(index+1).toString()+'/'+len.toString()+')';
+}
+function pre(){
+    index=index-1;
+    if(index<0){
+        index=len-1;
+    }
+    v.src=a[index]
+    v.play();
+    document.getElementById('title').innerHTML = '('+(index+1).toString()+'/'+len.toString()+')';
+}
 </script>
 </body>
 </html>

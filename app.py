@@ -1,10 +1,10 @@
 import re
-import os
 from datetime import timedelta
 from json import JSONEncoder
+
+from flask import *
 from flask_mail import Mail, Message
 from flask_sqlalchemy import SQLAlchemy
-from flask import *
 
 # from API.FaceDetectionAPI import face_recognition
 from EditPhoto.imgToVedio import *
@@ -50,10 +50,9 @@ def tag_list(userid, tt):
     user = db.session.query(User.user).filter(User.id == userid).first()[0]
     if tt == 3:  # 获得人物tag列表
         r = db.session.query(Img.facetag).filter(Img.user == user).group_by(Img.facetag).all()
-        print(r)
         r = [x.facetag for x in r]
-    elif tt == 4 or tt == 1:  # 获得相册列表
-        r = db.session.query(Ablum.name).filter(Ablum.user == user).all()
+    elif tt == 5 or tt == 1:  # 获得相册列表
+        r = db.session.query(Album.name).filter(Album.user == user).all()
         r = [x[0] for x in r]
         pass
     else:
@@ -207,44 +206,51 @@ def index(userid, tt):
             r = group_by_date(db.session, u)
         elif tt == 2:  # 按人物标签分类
             r = group_by_tag(db.session, u)
-            return render_template("face_album.html", userid=userid, username=u.name, file_list=r, type=1, path=path)
+            return render_template("face_album.html", userid=userid, username=u.name, file_list=r, tt=tt, path=path)
         elif tt == 3:
             r = group_by_class(db.session, u)
-            return render_template("album.html", userid=userid, username=u.name, file_list=r, type=2, path=path)
+            return render_template("album.html", userid=userid, username=u.name, file_list=r, tt=tt, path=path)
         elif tt == 4:
             r = group_by_album(db.session, u)
-            return render_template("album.html", userid=userid, username=u.name, file_list=r, type=3, path=path)
+            return render_template("album.html", userid=userid, username=u.name, file_list=r, tt=tt, path=path)
         return render_template("index.html", userid=userid, username=u.name, file_list=r, tt=tt, path=path)
     else:
         return redirect(url_for('sign_in_page'))
 
 
 # 操作用户自定义相册
-@app.route('/operate/ablum/<string:t>', methods=['POST'])
-def operate_ablum(t):
+@app.route('/operate/album/<string:t>', methods=['POST'])
+def operate_album(t):
     u = session.get('User')
     if u is not None:
         u = User.from_dict(u)
         if t == 'create':
-            name = request.form.get('ablumName')
-            r = create_ablum(db.session, u, name)
+            name = request.json.get('albumName')
+            if name is None:
+                return '相册名为空请重新命名'
+            r = create_album(db.session, u, name)
             if not r:
                 return '该相册已存在，请重新命名'
         elif t == 'delete':
-            name = request.json.get('ablumName')
-            delete_ablum(db.session, u, name)
+            name = request.json.get('albumName')
+            delete_album(db.session, u, name)
+        elif t == 'move':
+            name1 = request.json.get('albumName1')
+            name2 = request.json.get('albumName2')
+            id_list = request.json.get('id_list')
+            move_imgs(db.session, id_list, name1, name2)
         elif t == 'add':
             id_list = request.json.get('id_list')
-            name = request.json.get('ablumName')
+            name = request.json.get('albumName')
             add_imgs(db.session, id_list, name)
         elif t == 'remove':
             id_list = request.json.get('id_list')
-            name = request.json.get('ablumName')
+            name = request.json.get('albumName')
             remove_imgs(db.session, id_list, name)
         elif t == 'rename':
-            name1 = request.json.get('ablumName1')
-            name2 = request.json.get('ablumName2')
-            r = rename_ablum(db.session, name1, name2)
+            name1 = request.json.get('albumName1')
+            name2 = request.json.get('albumName2')
+            r = rename_album(db.session, name1, name2)
             if not r:
                 return '该相册已存在,请重新命名'
         else:
@@ -258,20 +264,24 @@ def operate_ablum(t):
 def album_class(userid, tt, classes):
     u = session.get('User')
     u = User.from_dict(u)
-    if tt == 3:
-        r = group_by_special_tag(db.session, u, classes)
-        return render_template("index.html", userid=userid, username=u.name, file_list=r, tt=3)
-    elif tt == 4:
+    if tt == 2:
+        r = group_by_special_tag(db.session, u, classes)  # {'',[] }
+        if len(r[classes]) == 0:
+            return render_template('message.html', title='Error', state_code=404, mes='当前资源不存在',
+                                   action='{0} don\'t exist!!!'.format(classes),
+                                   back=url_for('index', userid=userid, tt=1))
+        return render_template("index.html", userid=userid, username=u.name, file_list=r, tt=2, classes=classes)
+    elif tt == 3:
         r = group_by_special_class(db.session, u, classes)
-        return render_template("index.html", userid=userid, username=u.name, file_list=r, tt=5)
-    elif tt == 5:
-        r = group_by_special_ablum(db.session, u, classes)
+        return render_template("index.html", userid=userid, username=u.name, file_list=r, tt=3, classes=classes)
+    elif tt == 4:
+        r = group_by_special_album(db.session, u, classes)
         if r is None:
             return render_template('message.html', title='Error', state_code=404, mes='当前资源不存在',
                                    action='{0} don\'t exist!!!'.format(classes),
                                    back=url_for('index', userid=userid, tt=1))
         else:
-            return render_template("index.html", userid=userid, username=u.name, file_list=r, tt=4)
+            return render_template("index.html", userid=userid, username=u.name, file_list=r, tt=4, albumName=classes)
     else:
         return 'error'
 
@@ -279,7 +289,7 @@ def album_class(userid, tt, classes):
 # 发送邮件
 @app.route("/mail", methods=['post'])
 def send_mail():
-    # sender 发送方，recipients邮件接收方列表 cloudablum_xfy@163.com网易发送不出去
+    # sender 发送方，recipients邮件接收方列表 cloudalbum_xfy@163.com网易发送不出去
     email = request.json.get('email')
     sendType = request.json.get('sendType')
     msg = Message(subject="小福言-云相册", sender='1486147017@qq.com', recipients=[email])
@@ -357,11 +367,13 @@ def get_videos(userid):
         u = User.from_dict(u)
         if u.id == userid:
             name_list = os.listdir('static/temp/video')
-            p = '{}#'.format(u.id)
+            p = '{}_'.format(u.id)
             path = []
             for x in name_list:
                 r = re.search(p, x)
                 if r is not None:
+                    print(r)
+                    print(x)
                     path.append('temp/video/' + x)
             return render_template('video.html', path=path)
         else:
@@ -487,16 +499,19 @@ def upload():
 
 # 生成精彩一刻视频
 def createVideos(u):
+    print('开始生成视频')
     styles = aiVideo(session=db.session, u=u)
+    i = 0
     for x in styles:
-        write_video(db.session, u.id, styles[x][1], x, False, False)
+        write_video(db.session, u.id, styles[x], i, False, False)
+        i = i + 1
 
 
 # 清理精彩一刻视频
 def clearVideos(u):
     path = 'static/temp/video'
     # path = url_for('static', filename='temp/video')
-    p = re.compile("{}#".format(u.id))
+    p = re.compile("{}_".format(u.id))
     for x in os.listdir(path):
         r = re.search(p, x)
         if r is not None and r.regs[0][0] == 0:
