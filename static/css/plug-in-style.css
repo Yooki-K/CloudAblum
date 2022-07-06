@@ -1,0 +1,149 @@
+#tc li{
+    list-style: none;
+    margin: 20px 40px 20px 0px;
+    padding: 5px 0;
+    background: rgb(67, 87, 101,0.5);
+    border-radius: 10px;
+    color: white;
+    font-weight: bold;
+}
+#tc li:hover{
+    background: rgb(215, 141, 85,0.5);
+}
+#tc li span{
+    display:inline-block;
+    width: 100%;
+    text-align: center;
+}
+#tc{
+		position:fixed;
+		display:flex;
+		flex-direction:row;
+		flex-wrap:wrap ;
+		overflow-y:scroll;
+		margin-left:300px;
+		margin-right:300px;
+		background-color:rgb(109, 106, 99, 0.5);
+		top:5%;
+		left:220px;
+		height:700px;
+}
+#tc .show1 {
+    width:180px;
+    height:auto;
+    top:50%;
+    left:50%;
+    position:relative;
+    transform:translate(-50%,-50%);
+}
+
+#tc .need{
+    width: 200px;
+    height: 200px;
+    display:inline-block;
+    overflow:hidden;
+    
+}
+.margin_15{
+    margin: 0 15px;
+}
+#tc .need:hover{
+    background-color:#c1c1c1;
+}
+
+
+@keyframes unselected {
+  0% { box-shadow: 0 0 0 4px #00c09e; }
+  50% { transform: scale(0.5); opacity: 0.8; box-shadow: 0 0 0 4px #fff; }
+  80%,100% { width: 100%; height: 100%; box-shadow: 0 0 0 4px #fff; }
+}
+@-o-keyframes unselected {
+  0% { box-shadow: 0 0 0 4px #00c09e; }
+  50% { -o-transform: scale(0.5); opacity: 0.8; box-shadow: 0 0 0 4px #fff; }
+  80%,100% { width: 100%; height: 100%; box-shadow: 0 0 0 4px #fff; }
+}
+@-ms-keyframes unselected {
+  0% { box-shadow: 0 0 0 4px #00c09e; }
+  50% { width: 45%; height: 45%; opacity: 0.8; box-shadow: 0 0 0 4px #fff; }
+  80%,100% { width: 100%; height: 100%; box-shadow: 0 0 0 4px #fff; }
+}
+@-moz-transition unselected {
+  0% { box-shadow: 0 0 0 4px #00c09e; }
+  50% { -moz-transform: scale(0.5); opacity: 0.8; box-shadow: 0 0 0 4px #fff; }
+  80%,100% { width: 100%; height: 100%; box-shadow: 0 0 0 4px #fff; }
+}
+@-webkit-keyframes unselected {
+  0% { box-shadow: 0 0 0 4px #00c09e; }
+  50% { -webkit-transform: scale(0.5); opacity: 0.8; box-shadow: 0 0 0 4px #fff; }
+  80%,100% { width: 100%; height: 100%; box-shadow: 0 0 0 4px #fff; }
+}
+
+.show1:before {
+  content: "\2714";
+  display: block;
+  position: absolute;
+  margin: auto;
+  top: 0; left: 0; bottom: 0; right: 0;
+  width: 40px;
+  height: 40px;
+  line-height: 40px;
+  background:  #00c09e;
+  border-radius: 50px;
+  color: #fff;
+  text-align: center;
+  font-size: 16px;
+  z-index: 10;
+  opacity: 0;
+  transition:         0.3s linear;
+  -o-transition:      0.3s linear;
+  -ms-transition:     0.3s linear;
+  -moz-transition:    0.3s linear;
+  -webkit-transition: 0.3s linear;
+  -o-user-select:      none;
+  -moz-user-select:    none;
+  -webkit-user-select: none;
+  cursor: pointer;
+}
+
+.show1.selected:before {
+  opacity: 1;
+
+}
+
+/* img selection */
+
+.show1.selected {
+  box-shadow: 0 0 0 4px #00c09e;
+  animation:        selected 0.3s cubic-bezier(0.250, 0.100, 0.250, 1.000);
+  -o-animation:     selected 0.3s cubic-bezier(0.250, 0.100, 0.250, 1.000);
+  -ms-animation:    selected 0.3s cubic-bezier(0.250, 0.100, 0.250, 1.000);
+  -moz-animation:   selected 0.3s cubic-bezier(0.250, 0.100, 0.250, 1.000);
+  -webkit-animation: selected 0.3s cubic-bezier(0.250, 0.100, 0.250, 1.000);
+}
+
+@keyframes selected {
+  0% { border-color: #fff; }
+  50% { transform: scale(0.5); opacity: 0.8; box-shadow: 0 0 0 4px #00c09e; }
+  80%,100% { width: 100%; height: 100%; box-shadow: 0 0 0 4px #00c09e; }
+}
+@-o-keyframes selected {
+  0% { box-shadow: 0 0 0 4px #fff; }
+  50% { -o-transform: scale(0.5); opacity: 0.8; box-shadow: 0 0 0 4px #00c09e; }
+  80%,100% { width: 100%; height: 100%; box-shadow: 0 0 0 4px #00c09e; }
+}
+@-ms-keyframes selected {
+  0% { box-shadow: 0 0 0 4px #fff; }
+  50% { width: 45%; height: 45%; opacity: 0.8; box-shadow: 0 0 0 4px #00c09e; }
+  80%,100% { width: 100%; height: 100%; box-shadow: 0 0 0 4px #00c09e; }
+}
+@-moz-transition selected {
+  0% { box-shadow: 0 0 0 4px #fff; }
+  50% { -moz-transform: scale(0.5); opacity: 0.8; box-shadow: 0 0 0 4px #00c09e; }
+  80%,100% { width: 100%; height: 100%; box-shadow: 0 0 0 4px #00c09e; }
+}
+@-webkit-keyframes selected {
+  0% { box-shadow: 0 0 0 4px #fff; }
+  50% { -webkit-transform: scale(0.5); opacity: 0.8; box-shadow: 0 0 0 4px #00c09e; }
+  80%,100% { width: 100%; height: 100%; box-shadow: 0 0 0 4px #00c09e; }
+}
+/* button */

@@ -1,26 +1,3 @@
-<div class="clearfix">
-    <li class="nav-item dropdown" style="position:fixed;right: 30px;">
-        <button class="send " data-counter="0">&#10004;</button>
-        <div>
-            <button onclick="deleteImgs($('.show1.selected'),'{{url_for('deleteImage')}}')"
-                    style="width:45px;background:crimson;display:none;" id="delete">删除
-            </button>
-        </div>
-        <div>
-            <button onclick="downloadFiles($('.show1.selected'))"
-                    style="width:45px;background:yellowgreen;display:none;" id="download">下载
-            </button>
-        </div>
-        <div>
-            <button onclick="provideTags({{list(file_list.keys())}},$('.show1.selected'),'{{url_for('update_tag',t=2)}}')"
-                    style="width:45px;background:blue;display:none;" id="move">移动
-            </button>
-        </div>
-    </li>
-
-    </li>
-</div>
-
 <div class="container-fluid" style="z-index: 0;">
     {%for x in file_list%}
     <div>
@@ -29,7 +6,7 @@
                 {% if file_list[x] == 'none' %}
                 <img src="{{ url_for('static',filename='images/empty.jpg') }}" title="{{x}}"
                      alt="Image"
-                     class="img-fluid tm-img" style="z-index: 0;">
+                     class="img-fluid tm-img show1" style="z-index: 0;">
                 {%else%}
                 <img src="{{getbase64(file_list[x].content)}}" title="{{x}}"
                      style="background-image:{{getbase64(file_list[x].content)}};z-index: 0;" alt="Image"
@@ -71,12 +48,13 @@
                 <div class="modal-body">
                     <div style="margin: 10px;font-size: large;">
 
-                        <input type="text" class="form-control" id="new_Name" value="" placeholder="相册新名字" autofocus=''>
+                        <input type="text" class="form-control" id="new_Name" value="" placeholder="请输入新名称"
+                               autofocus=''>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary"
-                            onclick="AlbumRename($('#now_Name').html(),$('#new_Name').val(),'{{url_for('operate_album',t='rename')}}')">
+                            onclick="$('#renameModal').hide();albumRename($('#now_Name').html(),$('#new_Name').val(),'{{url_for('operate_album',t='rename')}}')">
                         确定
                     </button>
                     <button type="button" class="btn btn-secondary" data-dismiss="modal"
@@ -87,28 +65,37 @@
         </div>
     </div>
     <script>
+        {% if tt==4 %}
         $('.grid-item').on('contextmenu', function (params) {
             // console.log("右键事件");
-            if($('.dddd').length == 0)
-            {
-                $('#menu').append('<a class="dropdown-item dddd" onclick="rename(\''
-                + params.target.id +
-                '\')" href="#"><i class="fa fa-pencil"></i> 重命名</a>');
-                $('.edit').remove()
-            }
+
             if($('.dd').length == 0){
                 $('#menu').append('<a class="dropdown-item dd" onclick="deleteAlbum(\'{{url_for("operate_album",t="delete")}}\',\''
                 + params.target.id +
                 '\')" href="#"><i class="fa fa-times"></i> 删除</a>');
             }
+            if($('.dddd').length == 0)
+            {
+                $('#menu').append('<a class="dropdown-item dddd" onclick="rename(\''+params.target.id+'\')" href="#"><i class="fa fa-pencil"></i> 重命名</a>');
+                $('.edit').remove();
+            }
+
         });
-        function rename(now_Name){
-            $('#now_Name').text(now_Name);
-            $('#renameModal').show();
-        }
-        function deleteAlbum(url,name){
-            delete_album(name,url);
-        }
+        {% endif %}
+    function rename(now_Name){
+        $('#now_Name').text(now_Name);
+        $('#new_Name').val('');
+        $('#renameModal').show();
+    }
+    function deleteAlbum(url,name){
+        delete_album(name,url);
+    }
+    function createAlbum()
+    {
+        var _url = '/operate/album/create';
+        var albumName = $('#CreateAlbumName').val();
+        create_album(albumName,_url);
+    }
 
     </script>
 </div>

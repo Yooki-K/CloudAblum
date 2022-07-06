@@ -1,6 +1,4 @@
 from utils import *
-from API import FaceDetectionAPI as fapi
-
 
 # 磨皮 value越大，程度越深
 def p_chart_cv(image, value=28):
@@ -80,7 +78,6 @@ def remove_watermark(f_stream):
     cv2.imshow("newImage", specular)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
-
 
 def test1(path):
     img_ = Image.open(path)

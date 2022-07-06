@@ -6,9 +6,10 @@ class User(db.Model):
     __tablename__ = 'Users'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user = db.Column(db.String(64), unique=True, nullable=False)
-    name = db.Column(db.String(64))
+    name = db.Column(db.String(64), nullable=False)
     pwd = db.Column(db.String(64))
     facesetid = db.Column(db.String(128))
+    avatar = db.Column(db.LargeBinary(length=65536))  # 二进制图片流 头像
     # points = db.Column(db.Integer, default=0)
     # space = db.Column(db.Integer, default=1024 * 1024 * 1024)  # 内存初始1GB
     # excluded = db.Column(db.Integer, default=0)
@@ -60,6 +61,15 @@ class Img(db.Model):
     # __repr__()方法显示一个可读字符串，虽然不是完全必要，不过用于调试、测试是很不错的。
     def __repr__(self):
         return '<UserImg {}>'.format(self.name)
+
+    # dict(img)，会先调用keys方法，这里重写，自定义获取返回的字段
+    def keys(self):
+        return ['id', 'user', 'name', 'content', 'datetime', 'classes', 'description', 'faceid', 'facetag',
+                'deletetime']
+
+    # dict(img)获取完字段后，会取出对应字段的值，这里使用__getitem__，这里getattr(self, item)拿到值信息，item为key名
+    def __getitem__(self, item):
+        return getattr(self, item)
 
 
 class Code(db.Model):

@@ -6270,8 +6270,6 @@ app-root {
       opacity: 1; }
   .sidebar .sidebar-nav {
     position: relative;
-    overflow-x: hidden;
-    overflow-y: auto;
     -ms-overflow-style: -ms-autohiding-scrollbar;
     width: 200px; }
     .sidebar .sidebar-nav::-webkit-scrollbar {

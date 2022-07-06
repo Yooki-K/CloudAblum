@@ -1,49 +1,19 @@
-<div class="clearfix">
-    <label id="upload-btn" class="add"></label>
-
-    <li class="nav-item dropdown" style="position:fixed;right: 30px;">
-        <button class="send " data-counter="0">&#10004;</button>
-        <div>
-            <button onclick="deleteImgs($('.show1.selected'),'{{url_for('deleteImage')}}')"
-                    style="width:45px;background:crimson;display:none;" id="delete">删除
-            </button>
-        </div>
-        <div>
-            <button onclick="downloadFiles($('.show1.selected'))"
-                    style="width:45px;background:yellowgreen;display:none;" id="download">下载
-            </button>
-        </div>
-        <div id="move_div">
-            <button onclick="provideTags({{list(file_list.keys())}},$('.show1.selected'),'{{url_for('update_tag',t=2)}}')"
-                    style="width:45px;background:blue;display:none;" id="move">移动
-            </button>
-        </div>
-    </li>
-</div>
 <div class="container-fluid">
     {%for x in file_list%}
     <div>
-        <div class="grid-item">
-            <a href="#" class="rename-toggle" style="display:inline-block;font-size:25px;">...</a>
-            <div style="display:none;">
-                <form action="{{url_for('update_tag',t=1)}}" method="post">
-                    <input name="new_tagName" \>
-                    <input name="old_tagName" value="{{x}}" style="display:none;" \>
-                    <button type="submit" class="rename">重命名</button>
-                </form>
-            </div>
+        <div class="grid-item" style="z-index:0;">
             <figure class="effect-bubba">
                 <img src="{{getbase64(file_list[x].content)}}"
-                     style="background-image:{{getbase64(file_list[x].content)}}" alt="Image"
+                     style="background-image:{{getbase64(file_list[x].content)}}; z-index: 0;" alt="Image"
                      class="show2" title="{{file_list[x].name}}" id="{{file_list[x].id}}">
-                <figcaption>
+                <figcaption style="z-index: 0;">
                     <h2 class="tm-figure-title" onclick="">{%if x[0:10] == '!@#unnamed'
                         %}{{'未命名'}}{%else%}{{x}}{%endif%}</h2>
                     <p class="tm-figure-description"></p>
                     {%if tt == 2%}
-                    <a href="{{url_for('album_class',userid=userid,tt=tt,classes=x)}}">View more</a>
+                    <a href="{{url_for('album_class',userid=userid,tt=tt,classes=x)}}" id="{{x}}">View more</a>
                     {%else%}
-                    <a href="{{url_for('album_class',userid=userid,tt=tt,classes=x)}}">View more</a>
+                    <a href="{{url_for('album_class',userid=userid,tt=tt,classes=x)}}" id="{{x}}">View more</a>
                     {%endif%}
                 </figcaption>
             </figure>
@@ -51,4 +21,57 @@
         </div>
     </div>
     {%endfor%}
+
+    <div id="renameModal" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered " role="document" style="margin-top: 150px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" style="display: inline-block;">重命名</h3>
+                    <label id="now_Name" style="font-size: 30px;
+                  font-weight: bold;
+                  position: absolute;
+                  width: 100%;
+                  left: 0;
+                  text-align: center;"></label>
+                    <button type="button" class="close" onclick="$('#renameModal').hide();">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div style="margin: 10px;font-size: large;">
+
+                        <input type="text" class="form-control" id="new_Name" value="" placeholder="请输入新名称"
+                               autofocus=''>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary"
+                            onclick="$('#renameModal').hide();faceTagRename($('#now_Name').html(),$('#new_Name').val(),'{{url_for('update_tag',t=1)}}');">
+                        确定
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                            onclick="$('#renameModal').hide();">关闭
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        $('.grid-item').on('contextmenu', function (params) {
+            // console.log("右键事件");
+            if($('.dddd').length == 0)
+            {
+                $('#menu').append('<a class="dropdown-item dddd" onclick="rename(\''
+                + params.target.id +
+                '\')" href="#"><i class="fa fa-pencil"></i> 重命名</a>');
+                $('.edit').remove()
+            }
+        });
+        function rename(now_Name){
+            $('#now_Name').text(now_Name);
+            $('#new_Name').text('');
+            $('#renameModal').show();
+        }
+
+    </script>
 </div>

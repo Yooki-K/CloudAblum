@@ -78,13 +78,13 @@
     </style>
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/send.js"></script>
-
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/bootstrap.min.css') }}">
 
 </head>
 <body style="margin: 0px;background: #0e0e0e;height: 100%;">
 <div class="img_frame">
     <input type="hidden" id="t" value=0>
-    <canvas id="canvas"></canvas>
+    <canvas id="canvas" style="z-index:100;" onclick="getMousePos(event)"></canvas>
     <div class="mes" id='svg'>
         <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
             <circle cx="15" cy="15" r="10" stroke="#6d6d69" fill="#6d6d69"/>
@@ -125,10 +125,49 @@
                     删除
                 </button>
             </li>
+            <li>
+                <button onclick="rename()">
+                    重命名
+                </button>
+            </li>
         </ol>
     </div>
 </div>
+<div id="renameModal" class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered " role="document" style="margin-top: 150px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" style="display: inline-block;">重命名</h3>
+                <label id="now_Name" style="font-size: 30px;
+              font-weight: bold;
+              position: absolute;
+              width: 100%;
+              left: 0;
+              text-align: center;"></label>
+                <button type="button" class="close" onclick="$('#renameModal').hide();">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div style="margin: 10px;font-size: large;">
+
+                    <input type="text" class="form-control" id="new_Name" value="" placeholder="请输入新名称" autofocus=''>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary"
+                        onclick="$('#renameModal').hide();imageRename({{img.id}},$('#new_Name').val(),'{{url_for('renameImage')}}');">
+                    确定
+                </button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                        onclick="$('#renameModal').hide();">关闭
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 <script type="text/javascript">
+    function rename(){$('#new_Name').val('');$('#renameModal').show();}
     var e={
         last:"",
         source:'',
@@ -144,6 +183,9 @@
         yy3:0,
         ww:0,
         hh:0,
+        dx:0,
+        dy:0,
+        scale:1.0,
         delete:function move(){
             if(e.xx1+e.w>0){
                 ctx.clearRect(e.xx1,e.yy1,e.ww,e.hh);
@@ -174,7 +216,7 @@
     
     };
 
-    rangeSwitch=function () {
+    rangeSwitch = function () {
         var x=$("#depth").val();
         $("p").css({"width":(x/10)*500*0.96});//乘的0.96是因为要不然绿色的颜色会有部分盖住滑动按钮（500-20）/500=0.96;
         $(".value").html(x);
@@ -190,12 +232,13 @@
         }
     }
     window.onload=function(){
+        // 监听点击事件
         var svg=$('#svg');
         svg.bind('mouseover',function(event){
             $('#info').append("<p>图片名 : {{img.name}}</p>");
             $('#info').append("<p>上传时间 : {{img.datetime}}</p>");
             $('#info').append("<p>分辨率 : "+img.width+' * '+img.height+"</p>");
-            // $('#info').append("<p>大小 : "+getSize("{{img.content}}".length)+"</p>");
+            $('#info').append("<p>大小 : "+getSize("{{img.content}}".length)+"</p>");
         });
         svg.bind('mouseout',function(event){
             $('#info').empty();
@@ -213,9 +256,9 @@
                 h_=h;
                 w_=w;
             }else{
-                var scale = Math.min(ww*0.99/w,hh*0.99/h);
-                h_=h*scale;
-                w_=w*scale;                
+                e.scale = Math.min(ww*0.99/w,hh*0.99/h);
+                h_=h*e.scale;
+                w_=w*e.scale;
             }
             e.x2=w/2;
             e.w=w/2;
@@ -226,13 +269,23 @@
             e.hh=h_;
             e.yy1=(hh-h_)/2;
             e.yy2=(hh-h_)/2;
-                            ctx.drawImage(img,e.x1,e.y1,e.w,e.h,e.xx1,e.yy1,e.ww,e.hh);
-                ctx.drawImage(img,e.x2,e.y2,e.w,e.h,e.xx2,e.yy2,e.ww,e.hh);
+            ctx.drawImage(img,e.x1,e.y1,e.w,e.h,e.xx1,e.yy1,e.ww,e.hh);
+            ctx.drawImage(img,e.x2,e.y2,e.w,e.h,e.xx2,e.yy2,e.ww,e.hh);
         }
         e.source = "{{getbase64(img.content)}}";
         img.src = e.source;
     }
-    
+    function getMousePos(event) {
+        var canvas = event.target;
+        var rect = canvas.getBoundingClientRect();
+        var x = event.clientX - rect.left * (canvas.width / rect.width);
+        var y = event.clientY - rect.top * (canvas.height / rect.height);
+        if(x-e.xx1 > 0 && x-e.xx1< e.ww*2 && y-e.yy1 > 0 && y-e.yy1< e.hh){
+            e.dx = (x-e.xx1)/e.scale;
+            e.dy = (y-e.yy1)/e.scale;
+        }
+        console.log("dx:"+e.dx+",dy:"+e.dy);
+    }
 
 
 </script>

@@ -15,25 +15,37 @@ def show_imq(a):
     img.show()
 
 
-def upload_img(session, u, file_list: list):
+def upload_img(session, user: str, file_list: list, tt, txt=None, isFromNet=False):
     """用户上传图片 直接上传至数据库"""
-    filenames = []
     imgs = []
     ttt = time.time()
+    index = 0
     for x in file_list:
-        filenames.append(x.filename)
-        filename = x.filename.split('.')[0]
-        x = x.stream.read()
+        if isFromNet:
+            filename = x['filename'].split('.')[0]
+            x = x['stream']
+        else:
+            filename = x.filename.split('.')[0]
+            x = x.stream.read()
         classes = 'waiting'
-        imgs.append(
-            {'user': u.user, 'name': filename, 'content': x, 'classes': classes})
+        index = index + 1
+        if tt == 3 and txt is not None:
+            classes = txt
+        if tt == 2 and txt is not None:
+            imgs.append(
+                {'user': user, 'name': filename, 'content': x, 'classes': 'human', 'facetag': txt})
+        else:
+            imgs.append(
+                {'user': user, 'name': filename, 'content': x, 'classes': classes})
     session.execute(
         Img.__table__.insert(),
         imgs
     )
     session.commit()
-    print('上传{0}张图片，耗时：{1}秒'.format(len(filenames), time.time() - ttt))
-    return filenames
+    r = session.query(Img.id).filter(
+        Img.user == user).order_by(desc('id')).first()
+    print('上传{0}张图片，耗时：{1}秒'.format(index, time.time() - ttt))
+    return r[0]
 
 
 def delete_all(session, entity_list):
@@ -127,12 +139,24 @@ def group_by_special_album(session, u: User, album):
         return None
 
 
+# 修改个人信息
+def update_users(session, user: str, data):
+    temp = data.pop('username')
+    data['user'] = temp
+    session.query(User).filter(User.user == user).update(data)
+    session.commit()
+    r = session.query(User).filter(User.user == user).first()
+    return r
+
+
 # 移动人脸
 def update_facetag(session, u, id_list, tagName):
+    old_tagName = ''
     for x in id_list:
         r = session.query(Img).filter(Img.id == x).first()
         if r is None:
             continue
+        old_tagName = r.facetag
         r.facetag = tagName
         if r.faceid != None:
             rr = session.query(Img).filter(Img.facetag == r.facetag, Img.user == u.user, Img.id != r.id).first()
@@ -140,13 +164,15 @@ def update_facetag(session, u, id_list, tagName):
                 rr.faceid = r.faceid
             r.faceid = None
     session.commit()
+    res = session.query(Img).filter(Img.user == u.user, Img.facetag == old_tagName).first()
+    if res is None:
+        return False
+    else:
+        return True
 
 
 # 修改人脸标识face_tag
 def update_tagName(session, old_tagName, new_tagName):
-    r = session.query(Img).filter(Img.facetag == new_tagName).first()
-    if r is not None:
-        return False
     session.query(Img).filter(Img.facetag == old_tagName).update({'facetag': new_tagName})
     session.commit()
     return True
@@ -261,7 +287,7 @@ def search_face(session, user, imageFile, confidence=0.5):
     for x in r:
         result = f.match_face(x.content, imageFile)
         print(x.name, result)
-        if result >= confidence and result > max_m:
+        if result is not None and result >= confidence and result > max_m:
             max_m = result
             faceid = x.faceid
             facetag = x.facetag
@@ -351,19 +377,29 @@ def delete_img(session, u: User, img_id: list):  # todo
 
 
 # 删除回收站内超过10天的图片
-def delete_timeout(session, u: User = None):
+def delete_timeout(session, u: User = None, isAll=False):
     now = dt.now().replace(microsecond=0)
     if u is not None:
         r = session.query(Img).filter(Img.deletetime != None, Img.user == u.user).all()
+        num = len(r)
+        if not isAll:
+            num = 0
+            for x in r:
+                if (now - x.deletetime).days >= 10:
+                    session.delete(x)
+                    num += 1
+        else:
+            for x in r:
+                session.delete(x)
+        print(num)
+        session.commit()
+        return num
     else:
         r = session.query(Img).filter(Img.deletetime != None).all()
-    num = 0
-    for x in r:
-        if (now - x.deletetime).days >= 10:
+        for x in r:
             session.delete(x)
-            num += 1
-    session.commit()
-    return num
+        session.commit()
+        return
 
 
 # 精彩一刻

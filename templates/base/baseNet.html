@@ -1,0 +1,29 @@
+<div class="clearfix">
+    <!-- <label id="upload-btn" class="add"></label> -->
+    <li class="nav-item dropdown" style="position:fixed;right: 10px;">
+        <button class="send" style="display:none;" data-counter="0">&#10004;</button>
+        <div>
+            <button onclick="uploadFiles($('.show1.selected'))"
+                    class="left-button" id="ADD">上传
+            </button>
+        </div>
+        <div>
+            <button onclick="downloadFiles($('.show1.selected'))"
+                    class="left-button" id="download">下载
+            </button>
+        </div>
+    </li>
+</div>
+
+<ul class="cool">
+    {%for y in file_list%}
+    <div class="need">
+        <a class="show_link" href="{{y.stream}}" target=_blank rel=noopener>
+            <!--            <img src="{{y.stream}}" style="background-image:{{getbase64(y.stream)}};z-index:0;"-->
+            <img src="{{y.stream}}" style=z-index:0;"
+                 class="show1" title="{{y.filename}}">
+        </a>
+    </div>
+    {%endfor%}
+</ul>
+

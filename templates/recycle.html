@@ -1,12 +1,11 @@
 {%extends 'base/baseHtml.html'%}
 {%block show%}
 <div class="clearfix">
-    <button style="" onClick="{{url_for('clear_recycle')}}"><i class="icon-trash"></i>清空</button>
     <li class="nav-item dropdown" style="position:fixed;right: 30px;">
         <button class="send " style="display:none;" data-counter="0">&#10004;</button>
         <div>
             <button onclick="restoreImgs($('.show1.selected'),'{{url_for('restoreImgs')}}')"
-                    style="width:45px;background:#568798;display:none;" id="restore">还原
+                    class="left-button" id="restore">还原
             </button>
         </div>
     </li>
@@ -20,7 +19,8 @@
         </a>
     </div>
     <br>
-    <div style="text-align:center;display:inline-block;background-color:rgb(20 173 228 / 31%);color:white;padding:0 10px;">
+    <div class='margin_15'
+         style="text-align:center;display:inline-block;background-color:rgb(20 173 228 / 31%);color:white;padding:0 10px;">
         <p>删除时间：{{x['delete_time']}}</p>
         <p>剩余时间：{{x['left_time']}}</p>
     </div>
@@ -29,5 +29,7 @@
 {%endblock%}
 {%block functionOnload%}
 $(".clearfix")[0].empty();
+<!--<button style="" onclick="clearRecycle('{{url_for('clear_recycle')}}')"><i class="icon-trash"></i>清空</button>-->
 $(".clearfix")[0].append("")
+
 {%endblock%}

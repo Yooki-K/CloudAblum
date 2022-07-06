@@ -25,7 +25,7 @@ function provideTags(tags,e,url,type,albumName){
 			$(".tags").bind("click",function(event){updateTags(e,url,event);$('#tc').remove();});
 		}else{
 			if(type == 'ADD'){
-				$(".tags").bind("click",function(event){operatealbum(e,url,'add',event);$('#tc').remove();});
+                    $(".tags").bind("click",function(event){operatealbum(e,url,'add',event);$('#tc').remove();});
 			}else{
                 if(type == 'move_'){
                     $(".tags").bind("click",function(event){operatealbum(e,url,'move',event,albumName);$('#tc').remove();});
@@ -62,4 +62,13 @@ function autoPlay(list,i){
 	      this.src(p);
 	      this.play();
     });
+}
+
+function showOrHide(event) {
+    var t = event.target.parentNode.parentNode.nextElementSibling.style.display
+    if(t=='none'){
+        event.target.parentNode.parentNode.nextElementSibling.style.display='block'
+    }else{
+        event.target.parentNode.parentNode.nextElementSibling.style.display='none'
+    }
 }

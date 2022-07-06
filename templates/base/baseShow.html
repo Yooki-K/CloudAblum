@@ -2,65 +2,61 @@
     <!-- <label id="upload-btn" class="add"></label> -->
     <li class="nav-item dropdown" style="position:fixed;right: 10px;">
         <button class="send" style="display:none;" data-counter="0">&#10004;</button>
-        <div>
-            <button onclick="deleteImgs($('.show1.selected'),'{{url_for('deleteImage')}}')"
-                    style="width:45px;background:crimson;display:none;z-index:2000;" id="delete">删除
-            </button>
-        </div>
-        <div>
-            <button onclick="downloadFiles($('.show1.selected'))"
-                    style="width:45px;background:yellowgreen;display:none;z-index:2000;" id="download">下载
-            </button>
-        </div>
-        {% if tt == 1 %}
+        {% if tt != 4 %}
         <div>
             <button onclick="provideTags({{tagList(userid,tt)}},$('.show1.selected'),'{{url_for('operate_album',t='add')}}',this.id)"
-                    style="width:45px;background:blue;display:none;z-index:2000;" id="ADD">添加
+                    class="left-button" id="ADD">添加
             </button>
         </div>
         {% endif %}
-        {% if tt == 3%}
+        {% if tt == 2%}
         <div>
-            <button onclick="provideTags({{tagList(userid,tt)}},$('.show1.selected'),'{{url_for('update_tag',t=tt)}}',this.id)"
-                    style="width:45px;background:blue;display:none;z-index:2000;" id="move">移动
+            <button onclick="provideTags({{tagList(userid,tt,'move')}},$('.show1.selected'),'{{url_for('update_tag',t=3)}}',this.id)"
+                    class="left-button" id="move">移动
             </button>
         </div>
         {% endif %}
-        {% if tt == 5%}
+        {% if tt == 4%}
         <div>
             <button onclick="provideTags({{tagList(userid,tt)}},$('.show1.selected'),'{{url_for('operate_album',t='move')}}',this.id+'_','{{albumName}}')"
-                    style="width:45px;background:blue;display:none;z-index:2000;" id="move">移动
+                    class="left-button" id="move">移动
             </button>
         </div>
         <div>
-            <button onclick="operatealbum($('.show1.selected'),'{{url_for('operate_album',t='remove')}}',this.id,'{{list(file_list.keys())[0]}}')"
-                    style="width:45px;background:#3fb3db;display:none;z-index:2000;" id="remove">移除
+            <button onclick="operatealbum($('.show1.selected'),'{{url_for('operate_album',t='remove')}}','remove','{{albumName}}')"
+                    class="left-button" id="remove">移除
             </button>
         </div>
         {% endif %}
-
+        <div>
+            <button onclick="downloadFiles($('.show1.selected'))"
+                    class="left-button" id="download">下载
+            </button>
+        </div>
+        <div>
+            <button onclick="deleteImgs($('.show1.selected'),'{{url_for('deleteImage')}}')"
+                    class="left-button" id="delete">删除
+            </button>
+        </div>
     </li>
 
     </li>
 </div>
 
 <ul class="cool">
-    {%for x in file_list%}
-    <div>
-        <li class="date{{loop.index0}}">
-            <span>{{x}}</span></li>
-    </div>
-    <div>
-        {%for y in file_list[x]%}
-        <div class="need">
-            <a class="show_link" href="{{url_for('showImage',userid=userid,imgid=y.id)}}" target="_blank">
-                <img src="{{getbase64(y.content)}}" style="background-image:{{getbase64(y.content)}};z-index:0;"
-                     class="show1" title="{{y.name}}" id="{{y.id}}">
-            </a>
-        </div>
-
-        {%endfor%}
-    </div>
-    {%endfor%}
 </ul>
 
+<img src="">
+<script type="text/javascript">
+    $(function(){
+    //获取图片
+      $.ajax({
+          type:'POST',
+          url:window.location.href,
+          success:function(data){
+              getImages(data,{{userid}});
+          }
+      })
+    });
+
+</script>

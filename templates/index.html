@@ -1,6 +1,10 @@
 {%extends 'base/baseHtml.html'%}
 {%block show%}
+{% if tt <10 %}
 {%include 'base/baseShow.html'%}
+{% else %}
+{%include 'base/baseNet.html'%}
+{% endif %}
 {%endblock%}
 {%set index=0%}
 {%block functionOnload%}

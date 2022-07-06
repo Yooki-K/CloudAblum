@@ -4,6 +4,20 @@
     cursor: pointer;
     opacity: .0001;
 }
+.left-button{
+    border-radius:0;
+    width:45px;
+    height:30px;
+    background:#949ea6;
+    display:none;
+    z-index:2000;
+}
+.left-button:hover{
+    background:#00c09e;
+}
+.center-div{
+    position: absolute;left: 50%;top: 50%;transform: translate(-50%,-50%);text-align: center;
+}
 .manual-file-chooser-text{
     text-decoration:underline;
     color:blue;
@@ -68,16 +82,17 @@ div::red-line{
 .tags{
     display:inline-block;
     width:150px;
-    height:150px;
+    height:50px;
     background-color:#6d6a63;
     font-size:20px;
     color: white;
     text-align: center;
     margin: 5px;
-    line-height: 150px;
+    line-height: 50px;
     white-space: nowrap ;
     overflow:hidden;
     text-overflow: ellipsis;
+    border-radius:50px;
 }
 .tags:hover{
     background-color:#282821;

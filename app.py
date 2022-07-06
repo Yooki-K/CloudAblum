@@ -1,4 +1,5 @@
 import re
+import requests
 from datetime import timedelta
 from json import JSONEncoder
 
@@ -6,15 +7,12 @@ from flask import *
 from flask_mail import Mail, Message
 from flask_sqlalchemy import SQLAlchemy
 
-# from API.FaceDetectionAPI import face_recognition
-from EditPhoto.imgToVedio import *
+# from EditPhoto.imgToVedio import *
 
 app = Flask(__name__)
-
 from DataSQL.DBUtil import *
 from EditPhoto.EditImg import *
-
-# from EditPhoto.imgToVedio import *
+from flask_cors import cross_origin
 
 # git config --global http.sslVerify "false"
 
@@ -46,12 +44,18 @@ app.config.update(
 )
 
 
-def tag_list(userid, tt):
+def tag_list(userid, tt, op='add'):
     user = db.session.query(User.user).filter(User.id == userid).first()[0]
-    if tt == 3:  # 获得人物tag列表
+    if tt == 2 and op == 'move':  # 获得人物tag列表
         r = db.session.query(Img.facetag).filter(Img.user == user).group_by(Img.facetag).all()
-        r = [x.facetag for x in r]
-    elif tt == 5 or tt == 1:  # 获得相册列表
+        l = []
+        for x in r:
+            if x.facetag is None:
+                l.append('其它')
+            else:
+                l.append(x.facetag)
+        r = l
+    elif tt == 4 or tt == 1 or tt == 2:  # 获得相册列表
         r = db.session.query(Album.name).filter(Album.user == user).all()
         r = [x[0] for x in r]
         pass
@@ -68,6 +72,12 @@ class MyJSONEncoder(JSONEncoder):
         if isinstance(obj, User):
             # 自定义返回字典
             return dict(obj)
+        if isinstance(obj, Img):
+            # 自定义返回字典
+            temp = dict(obj)
+            temp['content'] = ImgHandler.getBase64(temp['content'])
+            temp.pop('datetime')
+            return temp
         return super(MyJSONEncoder, self).default(obj)
 
 
@@ -90,22 +100,19 @@ app.jinja_env.globals.update(len=len)
 app.jinja_env.globals.update(addone=addone)
 
 
-# 清除session
-@app.route('/remove')
-def remove():
-    if session.get('User') is not None:
-        session.pop('User')
-    return redirect(url_for('sign_in_page'))
-
-
 # 登录界面，发送
 @app.route('/sign-in-page', methods=('GET', 'POST'))
 def sign_in_page():
     if session.get('User') is not None:
-        result = session.get('User')
-        return redirect(url_for('index', userid=result['id'], tt=1))
+        result1 = session.get('User')
+        result2 = db.session.query(User).filter(User.user == result1['user']).first()
+        if result2 is not None:
+            return redirect(url_for('index', userid=result1['id'], tt=1))
+        else:
+            session.clear()
+            return render_template("sign_in.html")
     else:
-        return render_template('login/sign_in.html')
+        return render_template('sign_in.html')
 
 
 # 登录   username -用户名 pwd -登录密码 rem -七天内自动登录
@@ -128,62 +135,78 @@ def sign_in():
     return redirect(url_for('index', userid=result['id'], tt=1))
 
 
-# 注册页面
-@app.route('/sign-up-page')
-def sign_up_page():
-    return render_template('login/sign_up.html')
-
-
 # 注册
-@app.route('/sign-up', methods=['post'])
-def sign_up():
+@app.route('/operate/users/<string:t>', methods=['post'])
+def operateUsers(t):
     user = request.form.get('username')
     name = request.form.get('name')
     pwd = request.form.get('pwd')
     code = request.form.get('code')
-    result = db.session.query(Code).filter(Code.user == user, Code.sendType == -1).first()
+    sendType = request.form.get('sendType')
+    if sendType is str:
+        sendType = int(sendType)
+    if t == 'update':
+        file = request.files.get('avatar')
+        r = request.form.to_dict()
+        c = file.stream.read()
+        if len(c) != 0:
+            r['avatar'] = c
+        rr = update_users(db.session, user, r)
+        session.pop('User')
+        session['User'] = rr
+        return jsonify({'state': True, 'mes': '操作成功'})
+        pass
+    result = db.session.query(Code).filter(Code.user == user, Code.sendType == sendType).first()
     if result is None:
-        return render_template('message.html', title='Error', state_code=404, mes='验证码发送失败',
-                               action='signing up fails!!!',
-                               back=url_for('sign_up_page'))
+        return jsonify({'state': False, 'mes': '验证码发送失败'})
     real_code = result.code
     st_time = result.sendTime
     if int(time.time()) > st_time + 60:  # 超时
-        return render_template('message.html', title='Error', state_code=403, mes='超时，验证码已失效',
-                               action='signing up fails!!!',
-                               back=url_for('sign_up_page'))
+        return jsonify({'state': False, 'mes': '超时，验证码已失效'})
     if code != real_code:
-        return render_template('message.html', title='Error', state_code='注册失败', mes='验证码错误',
-                               action='signing up fails!!!',
-                               back=url_for('sign_up_page'))
+        return jsonify({'state': False, 'mes': '验证码错误'})
     # 验证码正确
-    f = fapi.FaceAPI()
-    f.get_token()
-    result = f.create_face_set(name)
-    if result is None:
-        return render_template('message.html', title='Error', state_code=403, mes='网络拥堵', action='signing up fails!!!',
-                               back=url_for('sign_up_page'))
-    else:
-        facesetid = result
+    db.session.delete(result)
+    db.session.commit()
+    if t == 'add':
+        while True:
+            facesetid = generate_random_str(6)
+            f = db.session.query(User).filter(facesetid == facesetid).first()
+            if f is not None:
+                break
         user = User(user=user, pwd=pwd, name=name, facesetid=facesetid)
         db.session.add(user)
         db.session.commit()
-        print(user)
-        return render_template('login/sign_up_ok.html')
+    if t == 'forget':
+        session.pop('User')
+        session['User'] = update_users(db.session, user, request.form.to_dict())
+    return jsonify({'state': True, 'mes': '操作成功'})
 
 
 # 登出页面
 @app.route('/logout', methods=['get'])
 def logout():
-    # 清空session
-    session.clear()
-    return render_template("login/sign_in.html")
+    if session.get('User') is not None:
+        session.pop('User')
+    return redirect(url_for('sign_in_page'))
 
 
-# 忘记密码
-@app.route('/forget-pwd-page')
-def forget_pwd_page():
-    return render_template('forget_pwd.html')
+# 获得用户个人信息
+@app.route('/get/user', methods=['POST'])
+def getUser():
+    u = session.get('User')
+    if u is not None:
+        r = db.session.query(User).filter(User.user == u['user']).first()
+        rr = {
+            'user': r.user,
+            'name': r.name,
+            'pwd': r.pwd,
+            'avatar': ImgHandler.getBase64(r.avatar),
+            'facesetid': r.facesetid
+        }
+        return jsonify(rr)
+    else:
+        return redirect(url_for('sign_in_page'))
 
 
 # 用户主界面
@@ -193,24 +216,28 @@ def index(userid, tt):
     if u is not None:
         path = []
         u = User.from_dict(u)
-        if u.id == userid:
-            name_list = os.listdir('static/temp/video')
-            p = '{}#'.format(u.id)
-            for x in name_list:
-                r = re.search(p, x)
-                if r is not None:
-                    path.append('static/temp/video/' + x)
-                    # path.append(url_for('static', filename='temp/video/' + x))
+        # if u.id == userid:
+        #     name_list = os.listdir('static/temp/video')
+        #     p = '{}#'.format(u.id)
+        #     for x in name_list:
+        #         r = re.search(p, x)
+        #         if r is not None:
+        #             path.append('static/temp/video/' + x)
+        #             # path.append(url_for('static', filename='temp/video/' + x))
         r = None
         if tt == 1:  # 按天分类
-            r = group_by_date(db.session, u)
+            if request.method == 'GET':
+                return render_template("index.html", userid=userid, username=u.name, tt=tt, path=path)
+            else:
+                r = group_by_date(db.session, u)
+                return r
         elif tt == 2:  # 按人物标签分类
             r = group_by_tag(db.session, u)
             return render_template("face_album.html", userid=userid, username=u.name, file_list=r, tt=tt, path=path)
-        elif tt == 3:
+        elif tt == 3:  # 按分类标签分类
             r = group_by_class(db.session, u)
             return render_template("album.html", userid=userid, username=u.name, file_list=r, tt=tt, path=path)
-        elif tt == 4:
+        elif tt == 4:  # 按相册分类
             r = group_by_album(db.session, u)
             return render_template("album.html", userid=userid, username=u.name, file_list=r, tt=tt, path=path)
         return render_template("index.html", userid=userid, username=u.name, file_list=r, tt=tt, path=path)
@@ -264,26 +291,25 @@ def operate_album(t):
 def album_class(userid, tt, classes):
     u = session.get('User')
     u = User.from_dict(u)
-    if tt == 2:
-        r = group_by_special_tag(db.session, u, classes)  # {'',[] }
-        if len(r[classes]) == 0:
-            return render_template('message.html', title='Error', state_code=404, mes='当前资源不存在',
-                                   action='{0} don\'t exist!!!'.format(classes),
-                                   back=url_for('index', userid=userid, tt=1))
-        return render_template("index.html", userid=userid, username=u.name, file_list=r, tt=2, classes=classes)
-    elif tt == 3:
-        r = group_by_special_class(db.session, u, classes)
-        return render_template("index.html", userid=userid, username=u.name, file_list=r, tt=3, classes=classes)
-    elif tt == 4:
-        r = group_by_special_album(db.session, u, classes)
-        if r is None:
-            return render_template('message.html', title='Error', state_code=404, mes='当前资源不存在',
-                                   action='{0} don\'t exist!!!'.format(classes),
-                                   back=url_for('index', userid=userid, tt=1))
-        else:
-            return render_template("index.html", userid=userid, username=u.name, file_list=r, tt=4, albumName=classes)
-    else:
-        return 'error'
+    if request.method == 'GET':
+        if tt == 2 or tt == 3:
+            return render_template("index.html", userid=userid, username=u.name, tt=tt, classes=classes)
+        elif tt == 4:
+            return render_template("index.html", userid=userid, username=u.name, tt=4, albumName=classes)
+    if request.method == 'POST':
+        r = group_by_date(db.session, u)
+
+        if tt == 2:
+            r = group_by_special_tag(db.session, u, classes)  # {'',[] }
+            if len(r[classes]) == 0:
+                r = {}
+        elif tt == 3:
+            r = group_by_special_class(db.session, u, classes)
+        elif tt == 4:
+            r = group_by_special_album(db.session, u, classes)
+            if r is None:
+                r = {}
+        return r
 
 
 # 发送邮件
@@ -302,7 +328,7 @@ def send_mail():
     try:
         mail.send(msg)
     except Exception as e:
-        print("send error" + str(e))
+        print("send error：" + str(e))
         return jsonify({'result': "error", 'mes': '发送验证码失败'})
     else:
         ecode = Code(user=email, code=r, sendType=sendType, sendTime=int(time.time()))
@@ -344,6 +370,16 @@ def editImage(type):
     return image_base
 
 
+@app.route('/renameImage', methods=['post'])
+def renameImage():
+    img_id = request.json.get('id')
+    img_name = request.json.get('name')
+    image = db.session.query(Img).filter(Img.id == img_id).first()
+    image.name = img_name
+    db.session.commit()
+    return '更改\'%s\'成功' % img_name
+
+
 # 批量移入回收站
 @app.route('/deleteImage', methods=['post'])
 def deleteImage():
@@ -360,28 +396,28 @@ def deleteImage():
         return redirect(url_for('sign_in_page'))
 
 
-@app.route('/<int:userid>/videos')
-def get_videos(userid):
-    u = session.get('User')
-    if u is not None:
-        u = User.from_dict(u)
-        if u.id == userid:
-            name_list = os.listdir('static/temp/video')
-            p = '{}_'.format(u.id)
-            path = []
-            for x in name_list:
-                r = re.search(p, x)
-                if r is not None:
-                    print(r)
-                    print(x)
-                    path.append('temp/video/' + x)
-            return render_template('video.html', path=path)
-        else:
-            return render_template('message.html', title='Error', state_code=404, mes='当前资源不存在',
-                                   action='{0} don\'t exist!!!'.format(request.url),
-                                   back=url_for('index', userid=userid))
-    else:
-        return redirect(url_for('sign_in_page'))
+# app.route('/<int:userid>/videos')
+# def get_videos(userid):
+#     u = session.get('User')
+#     if u is not None:
+#         u = User.from_dict(u)
+#         if u.id == userid:
+#             name_list = os.listdir('static/temp/video')
+#             p = '{}_'.format(u.id)
+#             path = []
+#             for x in name_list:
+#                 r = re.search(p, x)
+#                 if r is not None:
+#                     print(r)
+#                     print(x)
+#                     path.append('temp/video/' + x)
+#             return render_template('video.html', path=path)
+#         else:
+#             return render_template('message.html', title='Error', state_code=404, mes='当前资源不存在',
+#                                    action='{0} don\'t exist!!!'.format(request.url),
+#                                    back=url_for('index', userid=userid))
+#     else:
+#         return redirect(url_for('sign_in_page'))
 
 
 # 自动分类
@@ -392,8 +428,8 @@ def classify():
         u = User.from_dict(u)
         thread1 = threading.Thread(target=detection_img, args=(db.session, [u]), daemon=True, name="检测_" + str(u.id))
         thread1.start()
-        clearVideos(u)
-        createVideos(u)
+        # clearVideos(u)
+        # createVideos(u)
         return {"threadName": "检测_" + str(u.id)}
     else:
         return '请登录'
@@ -423,7 +459,7 @@ def recycle(userid):
         u = User.from_dict(u)
         if u.id == userid:
             results = recycle_bin(session=db.session, u=u)
-            return render_template('recycle.html', file_list=results, userid=userid)
+            return render_template('recycle.html', file_list=results, userid=userid, username=u.name)
         else:
             return render_template('message.html', title='Error', state_code=404, mes='当前资源不存在',
                                    action='{0} don\'t exist!!!'.format(request.url),
@@ -455,17 +491,18 @@ def update_tag(t):
     if u is None:
         return 'fail,请登录'
     u = User.from_dict(u)
-    tag1 = request.form.get('old_tagName')
-    tag2 = request.form.get('new_tagName')
+    tag1 = request.json.get('old_tagName')
+    tag2 = request.json.get('new_tagName')
+    print(tag1, tag2)
     if t == 1:  # 修改人脸标签
-        result = update_tagName(db.session, tag1, tag2)
-        if not result:
-            return '该人物label已存在'
+        update_tagName(db.session, tag1, tag2)
+        return '修改成功！'
     elif t == 3:  # 移动
         id_list = request.json.get('id_list')
-        tag2 = request.json.get('new_tagName')
-        update_facetag(db.session, u, id_list, tag2)
-    return redirect(url_for('index', userid=u.id, tt=2))
+        if update_facetag(db.session, u, id_list, tag2):
+            return request.referrer
+        else:
+            return url_for('index', userid=u.id, tt=2)
 
 
 # 批量下载图片
@@ -488,83 +525,97 @@ def download(id):
 
 
 # 批量上传图片
-@app.route('/upload', methods=['POST'])
-def upload():
+@app.route('/upload/<int:tt>/<string:txt>', methods=['POST'])
+def upload(tt, txt):
     u = session.get('User')
     u = User.from_dict(u)
     files = request.files.values()
-    upload_img(db.session, u, files)
+    if tt == 2 or tt == 3:
+        lastId = upload_img(db.session, u.user, files, tt, txt)
+    else:
+        lastId = upload_img(db.session, u.user, files, tt, None)
+    if tt == 4:
+        add_imgs(db.session, [lastId], txt)
     return jsonify({'upload': True})
 
 
-# 生成精彩一刻视频
-def createVideos(u):
-    print('开始生成视频')
-    styles = aiVideo(session=db.session, u=u)
-    i = 0
-    for x in styles:
-        write_video(db.session, u.id, styles[x], i, False, False)
-        i = i + 1
-
-
-# 清理精彩一刻视频
-def clearVideos(u):
-    path = 'static/temp/video'
-    # path = url_for('static', filename='temp/video')
-    p = re.compile("{}_".format(u.id))
-    for x in os.listdir(path):
-        r = re.search(p, x)
-        if r is not None and r.regs[0][0] == 0:
-            os.remove(os.path.join(path, x))
+# # 生成精彩一刻视频
+# def createVideos(u):
+#     print('开始生成视频')
+#     return  # todo videos
+#     styles = aiVideo(session=db.session, u=u)
+#     i = 0
+#     for x in styles:
+#         write_video(db.session, u.id, styles[x], i, False, False)
+#         i = i + 1
+#
+#
+# # 清理精彩一刻视频
+# def clearVideos(u):
+#     path = 'static/temp/video'
+#     # path = url_for('static', filename='temp/video')
+#     p = re.compile("{}_".format(u.id))
+#     for x in os.listdir(path):
+#         r = re.search(p, x)
+#         if r is not None and r.regs[0][0] == 0:
+#             os.remove(os.path.join(path, x))
 
 
 # 手动清空回收站
-@app.route('/clear', methods=['POST'])
+@app.route('/clear', methods=['post'])
 def clear_recycle():
+    print('清空回收站')
     u = session.get('User')
     if u is not None:
         u = User.from_dict(u)
-        return str(delete_timeout(session, u))
+        return str(delete_timeout(db.session, u, True))
     else:
         return '请先登录'
 
 
-#
-# @app.route('/face/compare', methods=['GET', 'POST'])
-# def faceCompared():
-#     files = request.files.getlist("files")
-#     face = face_recognition()
-#     goal = face.score_api(files)
-#     print(goal)
-#     if goal < 0.6:
-#         return "同一人"
-#         # return True
-#     else:
-#         return "非同一人"
-#         # return False
-#
-#
-# @app.route('/face/detection', methods=['GET', 'POST'])
-# def faceDetect():
-#     files = request.files.getlist('files')
-#     face = face_recognition()
-#     faceNumList = face.face_detect_api(files[0].stream.read())
-#     # return faceNumList
-#     return str(faceNumList)
-#
-#
+@app.route('/addImageFromUrl', methods=['post', 'get'])
+@cross_origin()
+def addImageFromUrl():
+    if request.method == 'GET':
+        return ''
+    else:
+        hhh = {
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
+            'Connection': 'keep-alive',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36 Edg/93.0.961.38',
+        }
+        txt = request.data.decode()
+        data = []
+        txts = txt.split(',,,')
+        facesetid = txts.pop(0)
+        u = db.session.query(User).filter(facesetid == facesetid).first()
+        for x in txts:  # todo 插件API
+            d = {}
+            if 'data:image' in x:
+                a = x.split('base64,')[1]
+                d['filename'] = a[:7]
+                d['stream'] = decode(a)
+                data.append(d)
+            if 'http' in x:
+                temp = x.split('/')[-1]
+                d['filename'] = re.findall('(.*?)\.', temp)[0]
+                r = requests.get(url=x, headers=hhh, timeout=10)
+                if '<!DOCTYPE html>' not in r.text:
+                    d['stream'] = r.content
+                    data.append(d)
+        upload_img(db.session, u.user, data, 10, None, True)
+        return '成功'
+
+
 @app.route('/', methods=['GET', 'POST'])
 def mainPage():
     return redirect(url_for('sign_in_page'))
 
 
-# end
-
-
 if __name__ == '__main__':
-    # delete_timeout(db.session)
-    # detection_img(db.session, db.session.query(User).all())
-    # app.run(host='192.168.1.11', port=80, debug=True)
+    delete_timeout(db.session)
     # reset()
     app.run(host='127.0.0.1', port=80)
     pass

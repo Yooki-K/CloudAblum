@@ -10,24 +10,40 @@
     <meta name="author" content="">
     <meta name="keyword"
           content="Bootstrap,Admin,Template,Open,Source,AngularJS,Angular,Angular2,jQuery,CSS,HTML,RWD,Dashboard">
-    <link rel="shortcut icon" href="/static/img/favicon.png')}}">
+    <link rel="shortcut icon" href="/static/images/logo.png')}}">
     <link rel="stylesheet" href="{{ url_for('static',filename='css/base.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/bootstrap.min.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/member.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/webuploader.css') }}">
     <link rel="stylesheet" href="{{ url_for('static',filename='css/layer.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/webuploader.css') }}">
     {%block link%}
     {%endblock%}
     <!-- Icons -->
     <link href="{{url_for('static', filename='css/font-awesome.min.css')}}" rel="stylesheet">
     <link href="{{url_for('static', filename='css/simple-line-icons.css')}}" rel="stylesheet">
-
     <!-- Main styles for this application -->
     <link href="{{url_for('static', filename='css/style.css')}}" rel="stylesheet">
+
     <script src="{{url_for('static', filename='js/jquery.min.js')}}"></script>
     <script src="{{url_for('static', filename='js/bootstrap.js')}}"></script>
-
+    <script src="{{url_for('static', filename='js/send.js')}}"></script>
+    <script src="{{url_for('static', filename='js/content.js')}}"></script>
+    <script src="{{url_for('static', filename='js/app.js')}}"></script>
+    <script src="{{url_for('static', filename='js/hashmap.js')}}"></script>
+    <script src="{{url_for('static', filename='js/webuploader.min.js')}}"></script>
     <style>
+        .round_icon{
+          width: 150px;
+          height: 150px;
+          border-radius: 50%;
+          overflow: hidden;
+        }
+        .round_icon_{
+          width: 35px;
+          height: 35px;
+          border-radius: 50%;
+          overflow: hidden;
+        }
         .upload-input{
             margin-top:20px;
             position: absolute;
@@ -66,10 +82,6 @@
             margin: 0;
             transition: background .3s ease-in-out;
         }
-        #upload {
-
-        }
-
 
 @keyframes unselected {
   0% { box-shadow: 0 0 0 4px #00c09e; }
@@ -168,7 +180,7 @@
 /* button */
 
 button {
-    background: #aaa;
+  background: #aaa;
   height: 45px;
   margin: 0 7px;
   padding: 5px 0;
@@ -276,7 +288,6 @@ button.send.selected:after {
         border: none;
 		/*自定义菜单相对与body元素进行定位*/
 	}
-
 	.clickmenu {
 		width: 130px;
 		height: 40px;
@@ -290,7 +301,7 @@ button.send.selected:after {
     }
 
     </style>
-    <title>智能云相册-个人中心{{tt}}</title>
+    <title>智能云相册平台-{{username}}的个人中心</title>
 
 </head>
 
@@ -298,61 +309,63 @@ button.send.selected:after {
 <body class="app header-fixed sidebar-fixed aside-menu-fixed aside-menu-hidden">
 <header class="app-header navbar">
     <img src="{{ url_for('static',filename='images/logo.png') }}" height="15" style="vertical-align:middle">&nbsp;
-    <span class="padding-left-8x" style="font-size: 24px;vertical-align:middle">智能云相册</span>
-    <small style="vertical-align:bottom;margin-left:10px;color:#ccc;">@小福言团队</small>
-    <ul class="nav navbar-nav hidden-md-down">
-        <li class="nav-item">
-            <a class="nav-link navbar-toggler sidebar-toggler" href="#">☰</a>
-        </li>
+    <span class="padding-left-8x" style="font-size: 24px;vertical-align:middle">智能云相册平台</span>
+    <small style="margin-top:20px;margin-left:10px;color:#ccc;">@小福言团队</small>
+    <!--    <ul class="nav navbar-nav hidden-md-down">-->
+    <!--        <li class="nav-item">-->
+    <!--            <a class="nav-link navbar-toggler sidebar-toggler" href="#">☰</a>-->
+    <!--        </li>-->
 
-        <li class="nav-item px-1">
-            <a class="btn btn-primary" style="padding-top:2%;padding-bottom:2%;" href="#">用户</a>
-        </li>
-        <li class="nav-item px-1">
-            <a class="btn btn-primary" style="padding-top:2%;padding-bottom:2%;" href="#">设置</a>
-        </li>
-    </ul>
+    <!--        <li class="nav-item px-1">-->
+    <!--            <a class="btn btn-primary" style="padding-top:2%;padding-bottom:2%;" href="#">用户</a>-->
+    <!--        </li>-->
+    <!--        <li class="nav-item px-1">-->
+    <!--            <a class="btn btn-primary" style="padding-top:2%;padding-bottom:2%;" href="#">设置</a>-->
+    <!--        </li>-->
+    <!--    </ul>-->
     <ul class="nav navbar-nav ml-auto" style="display:block;">
-        <li class="nav-item hidden-md-down">
-            <a class="nav-link" href="#"><i class="icon-bell"></i><span
-                    class="badge badge-pill badge-danger">5</span></a>
-        </li>
-        <li class="nav-item hidden-md-down">
-            <a class="nav-link" href="#"><i class="icon-list"></i></a>
-        </li>
-        <li class="nav-item hidden-md-down">
-            <a class="nav-link" href="#"><i class="icon-location-pin"></i></a>
-        </li>
-        <li class="nav-item dropdown">
+        <!--        <li class="nav-item hidden-md-down">-->
+        <!--            <a class="nav-link" href="#"><i class="icon-bell"></i><span-->
+        <!--                    class="badge badge-pill badge-danger">5</span></a>-->
+        <!--        </li>-->
+        <!--        <li class="nav-item hidden-md-down">-->
+        <!--            <a class="nav-link" href="#"><i class="icon-list"></i></a>-->
+        <!--        </li>-->
+        <!--        <li class="nav-item hidden-md-down">-->
+        <!--            <a class="nav-link" href="#"><i class="icon-location-pin"></i></a>-->
+        <!--        </li>-->
+        <li class="nav-item dropdown" style="right:50px;top:10px;">
             <a class="nav-link dropdown-toggle nav-link" data-toggle="dropdown" href="#" role="button"
                aria-haspopup="true" aria-expanded="false">
-                <img src="{{ url_for('static', filename='images/头像.png')}}" class="img-avatar"
+                <img src="{{ url_for('static', filename='images/头像.png')}}" id="nav-avatar"
+                     class="img-avatar round_icon_"
                      alt="admin@bootstrapmaster.com">
                 <span class="hidden-md-down">{{username}}</span>
             </a>
             <div class="dropdown-menu dropdown-menu-right" id="todolist">
-
-                <a class="dropdown-item" href="#"><i class="fa fa-bell-o"></i> 更新<span
-                        class="badge badge-info">42</span></a>
-                <a class="dropdown-item" href="#"><i class="fa fa-envelope-o"></i> 通知<span class="badge badge-success">42</span></a>
-                <a class="dropdown-item" href="#"><i class="fa fa-tasks"></i> 任务<span
-                        class="badge badge-danger">42</span></a>
-                <a class="dropdown-item" href="#"><i class="fa fa-comments"></i> 评论<span
-                        class="badge badge-warning">42</span></a>
-                <a class="dropdown-item" href="#"><i class="fa fa-user"></i> 文件</a>
-                <a class="dropdown-item" href="#"><i class="fa fa-wrench"></i> 账号</a>
-                <a class="dropdown-item" href="#"><i class="fa fa-usd"></i> 支付<span
-                        class="badge badge-default">42</span></a>
-                <a class="dropdown-item" href="#"><i class="fa fa-file"></i> 项目<span
-                        class="badge badge-primary">42</span></a>
-                <div class="divider"></div>
-                <a class="dropdown-item" href="#"><i class="fa fa-shield"></i> 锁定账户</a>
+                <!--                <a class="dropdown-item" href="#"><i class="fa fa-bell-o"></i> 更新<span-->
+                <!--                        class="badge badge-info">42</span></a>-->
+                <!--                <a class="dropdown-item" href="#"><i class="fa fa-envelope-o"></i> 通知<span class="badge badge-success">42</span></a>-->
+                <!--                <a class="dropdown-item" href="#"><i class="fa fa-tasks"></i> 任务<span-->
+                <!--                        class="badge badge-danger">42</span></a>-->
+                <!--                <a class="dropdown-item" href="#"><i class="fa fa-comments"></i> 评论<span-->
+                <!--                        class="badge badge-warning">42</span></a>-->
+                <!--                <a class="dropdown-item" href="#"><i class="fa fa-user"></i> 文件</a>-->
+                <!--                <a class="dropdown-item" href="#"><i class="fa fa-wrench"></i> 账号</a>-->
+                <!--                <a class="dropdown-item" href="#"><i class="fa fa-usd"></i> 支付<span-->
+                <!--                        class="badge badge-default">42</span></a>-->
+                <!--                <a class="dropdown-item" href="#"><i class="fa fa-file"></i> 项目<span-->
+                <!--                        class="badge badge-primary">42</span></a>-->
+                <!--                <div class="divider"></div>-->
+                <!--                <a class="dropdown-item" href="#"><i class="fa fa-shield"></i> 锁定账户</a>-->
+                <a class="dropdown-item" href="#" onclick="openRegisterModal('set')"><i class="icon-settings"></i>
+                    &nbsp;设置</a>
                 <a class="dropdown-item" href="{{url_for('logout')}}"><i class="fa fa-lock"></i> 登出</a>
             </div>
         </li>
-        <li class="nav-item hidden-md-down">
-            <a class="nav-link navbar-toggler aside-menu-toggler" href="#">☰</a>
-        </li>
+        <!--        <li class="nav-item hidden-md-down">-->
+        <!--            <a class="nav-link navbar-toggler aside-menu-toggler" href="#">☰</a>-->
+        <!--        </li>-->
 
     </ul>
 </header>
@@ -440,57 +453,104 @@ button.send.selected:after {
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title" id="myModalLabel">新建相册</h4>
+                <h4 class="modal-title" id="myModalLabel">新建</h4>
             </div>
             <div class="modal-body" style="text-align: center;">相册名字：<input type="text" id="CreateAlbumName"
                                                                             name="albumName">
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                    <button type="button" onclick="createAlbum();" class="btn btn-primary">确定</button>
+                    <button type="button" onclick="$('#createAlbum').hide();createAlbum();" class="btn btn-primary">确定
+                    </button>
                 </div>
             </div><!-- /.modal-content -->
         </div><!-- /.modal -->
     </div>
 </div>
+<!--注册弹窗-->
+<div class="modal fade login" id="setModal">
+    <div class="modal-dialog login animated">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">个人信息</h4>
+            </div>
+            <div class="modal-body">
+                <div class="box">
+                    <div class="content registerBox">
+                        <div class="form">
+                            <form method="post" action="" enctype="multipart/form-data"
+                                  style="align-items: center;justify-content: center;display: flex;flex-wrap: wrap;">
+                                <div class="input-group" style="align-items: center;justify-content: center;">
+                                    <input style="display:none;" type="file" name="avatar" id="inputImage"
+                                           accept="image/*" onchange="handleFiles(this.files)">
 
+                                    <span>
+                                        <img class="round_icon" id="myAvatar" src="/static/images/头像.png"
+                                             onclick="imageOnClick();">
+                                        <span class="fa fa-pencil-square-o" id="upd" style="display:none;"></span>
+                                    </span>
 
-<!--创建相册-->
-<script>
-function createAlbum()
-{
-    var _url = '/operate/album/create';
-    var albumName = $('#CreateAlbumName').val();
-    create_album(albumName,_url);
-}
+                                </div>
+                                <div class="input-group">
+                                    <span class="input-group-addon ">邮箱</span>
+                                    <input type="text" class="form-control" name="username" value=""
+                                           autofocus="">
+                                </div>
+                                <div class="input-group margin-top-8x">
+                                    <span class="input-group-addon ">昵称</span>
+                                    <input type="text" class="form-control" name="name" value=""
+                                           autofocus="">
+                                </div>
+                                <div class="input-group margin-top-8x">
+                                    <span class="input-group-addon ">库ID</span>
+                                    <span class="form-control" id="facesetid"></span>
+                                </div>
+                                <button class="btn margin-top-8x" style="padding: 0 10px;max-height:30px;"
+                                        onclick="return check(this,2,'/operate/users/update')">保存
+                                </button>
+                            </form>
+                        </div>
 
-</script>
-
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!--右键事件-->
-<div class="dropdown-menu dropdown-menu-right" id="menu" style="height:0">
-    <a class="dropdown-item" id="upload-btn" href="#"><i class="fa fa-upload"></i> 上传照片</a>
-    <a class="dropdown-item edit" href="#"><i class="fa fa-pencil"></i> 编辑模式</a>
-    <a class="dropdown-item" data-toggle="modal" data-target="#createAlbum" href="#"><i class="fa fa-plus"></i> 新建相册</a>
+<div class="dropdown-menu dropdown-menu-right" id="menu">
+    {%if tt == 1 or classes or albumName %}
+    <a class="dropdown-item" id="upload-btn" href="javascript:void(0)"><i class="fa fa-upload"></i> 上传照片</a>
+    {%endif%}
+    {%if tt == 1 or classes or albumName or not tt%}
+    <a class="dropdown-item edit" href="javascript:void(0)"><i class="fa fa-pencil"></i> 编辑模式</a>
+    {%endif%}
+    {%if tt == 4 and not albumName%}
+    <a class="dropdown-item" data-toggle="modal" data-target="#createAlbum" href="#"><i class="fa fa-plus"></i>新建</a>
+    {%endif%}
+    {%if not tt%}
+    <a class="dropdown-item dd" onclick="clearRecycle('{{url_for('clear_recycle')}}')" href="#"><i
+            class="fa fa-trash"></i>清空</a>
+    {%endif%}
 </div>
 
 <script>
     window.oncontextmenu = function(e) {
-        //取消默认的浏览器自带右键 很重要！！
-        e.preventDefault();
-
+        {%if tt != 3 or classes %}
+            //取消默认的浏览器自带右键 很重要！！
+            e.preventDefault();
+        {% endif %}
         //获取我们自定义的右键菜单
         var menu = document.querySelector("#menu");
-
         //根据事件对象中鼠标点击的位置，进行定位
-        menu.style.left = e.clientX + 'px';
-        menu.style.top = e.clientY + 'px';
-
+        posx = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+        posy = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+        menu.style.left = posx + 'px';
+        menu.style.top = posy + 'px';
         //改变自定义菜单的宽，让它显示出来
+        menu.style.height=(menu.children.length*40).toString()+'px';
         menu.style.width = '125px';
-        if($('.dddd').length > 0)
-            menu.style.height = '160px';
-        else
-            menu.style.height = '120px';
     }
     //关闭右键菜单，很简单
     window.onclick = function(e) {
@@ -498,10 +558,10 @@ function createAlbum()
         document.querySelector('#menu').style.height = 0;
         $('.dddd').remove();
     }
-
+    function imageOnClick(){
+        document.getElementById('inputImage').click();
+    }
 </script>
-
-
 <div class="app-body">
     <div class="sidebar">
         <nav class="sidebar-nav">
@@ -553,11 +613,11 @@ function createAlbum()
                 </li>
                 <hr style="filter: progid:dximagetransform.microsoft.glow(color=" #987cb9,strength=10)" width="100%"
                     color="#987cb9" size=1>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{url_for('get_videos',userid=userid)}}"><i class="icon-pie-chart"></i>
-                        精彩时刻<span
-                                class="badge badge-info">NEW</span></a>
-                </li>
+                <!--                <li class="nav-item">-->
+                <!--                    <a class="nav-link" href="url_for('get_videos',userid=userid)"><i class="icon-pie-chart"></i>-->
+                <!--                        精彩时刻<span-->
+                <!--                                class="badge badge-info">NEW</span></a>-->
+                <!--                </li>-->
                 <hr style="filter: progid:dximagetransform.microsoft.glow(color=" #987cb9,strength=10)" width="100%"
                     color="#987cb9" size=1>
                 <li class="divider"></li>
@@ -566,25 +626,12 @@ function createAlbum()
                 </li>
                 <li class="nav-item nav-dropdown">
                     <a class="nav-link nav-dropdown-toggle" href="https://github.com/ky-sfms/CloudAblum"
-                       target="_blank"><i class="icon-star"></i> 关于我们</a>
-                    <ul class="nav-dropdown-items">
-                        <li class="nav-item">
-                            <a class="nav-link" href="pages-login.html" target="_top"><i class="icon-star"></i>
-                                Login</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="pages-register.html" target="_top"><i class="icon-star"></i>
-                                Register</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="pages-404.html" target="_top"><i class="icon-star"></i> Error 404</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="pages-500.html" target="_top"><i class="icon-star"></i> Error 500</a>
-                        </li>
-                    </ul>
+                       target="_blank"><i class="icon-star" style="content:none;"></i> 关于我们</a>
                 </li>
-
+                <li class="nav-item nav-dropdown">
+                    <a class="nav-link nav-dropdown-toggle" href="/static/js/plug-in.js"
+                       target="_blank"><i class="icon-info" style="content:none;"></i> 油猴脚本</a>
+                </li>
             </ul>
             <ul>
                 <div class="mesbox icon-info">
@@ -599,9 +646,11 @@ function createAlbum()
 
         <!-- Breadcrumb -->
         <ol class="breadcrumb">
-            <li class="breadcrumb-item">云相册</li>
-            <li class="breadcrumb-item">用户</li>
+            <li class="breadcrumb-item">智能云相册平台</li>
+            <li class="breadcrumb-item">{{username}}</li>
+            {%if tt%}
             <li class="breadcrumb-item"><a href="{{url_for('index',userid=userid,tt=1)}}">主页</a></li>
+            {%endif%}
             {%if tt == 2%}
             <li class="breadcrumb-item"><a href="{{url_for('index',userid=userid,tt=tt)}}">人物</a></li>
             {%endif%}
@@ -610,6 +659,9 @@ function createAlbum()
             {%endif%}
             {%if tt == 4%}
             <li class="breadcrumb-item"><a href="{{url_for('index',userid=userid,tt=tt)}}">相册</a></li>
+            {%endif%}
+            {%if not tt%}
+            <li class="breadcrumb-item"><a href="{{url_for('recycle',userid=userid)}}">回收站</a></li>
             {%endif%}
 
             {%if albumName%}
@@ -621,11 +673,11 @@ function createAlbum()
 
             <!-- Breadcrumb Menu-->
             <li class="breadcrumb-menu hidden-md-down">
-                <div class="btn-group" role="group" aria-label="Button group with nested dropdown">
-                    <a class="btn btn-secondary" href="#"><i class="icon-speech"></i></a>
-                    <a class="btn btn-secondary" href="./"><i class="icon-graph"></i> &nbsp;排序方式 </a>
-                    <a class="btn btn-secondary" href="#"><i class="icon-settings"></i> &nbsp;设置</a>
-                </div>
+                <!--                <div class="btn-group" role="group" aria-label="Button group with nested dropdown">-->
+                <!--                    <a class="btn btn-secondary" href="#"><i class="icon-speech"></i></a>-->
+                <!--                    <a class="btn btn-secondary" href="./"><i class="icon-graph"></i> &nbsp;排序方式 </a>-->
+                <!--                    <a class="btn btn-secondary" href="#" onclick="openRegisterModal('set')"><i class="icon-settings"></i> &nbsp;设置</a>-->
+                <!--                </div>-->
             </li>
         </ol>
         <div class="container-fluid">
@@ -634,18 +686,29 @@ function createAlbum()
         </div>
     </main>
 </div>
-<script src="/static/js/jquery.min.js"></script>
-<script src="/static/js/app.js"></script>
-<script src="/static/js/webuploader.min.js"></script>
-<script src="/static/js/hashmap.js"></script>
-<script src="/static/js/send.js"></script>
-<script src="/static/js/content.js"></script>
+<script type="text/javascript">
+	//鼠标移出隐藏
+	$('#myAvatar').mouseout(function(){
+		$('#upd').hide();
+	})
+	//鼠标移入显示
+	$('#myAvatar').mouseover(function(){
+		$('#upd').show();
+		$('#upd').css('flex-wrap','nowrap') ;
+		$('#upd').css('display','flex') ;
+		$('#upd').css('justify-content','flex-end') ;
+	})
+
+</script>
 <script type="text/javascript">
         var fileMd5;
         var fileSuffix;
         var $list=$("#thelist table>tbody");
         var state = 'pending';//初始按钮状态
         $(function(){
+            $('.send').hide();
+            $('#menu').css('height','0');
+            $('.dddd').remove();
                 //重命名按钮响应
             $(".rename").bind("click",function(event){
                if($(this).prev().val()==''){
@@ -676,6 +739,9 @@ function createAlbum()
             // 上传按钮响应，上传窗口显示
             $("#upload-btn").bind("click",function(event){
                 $("#upload").show();
+                    var t = $(this).find('input')[0];
+                    t.click();
+<!--                    return true;-->
             });
             // 关闭上传窗口
             $("#cancel-upload").bind("click",function(event){
@@ -706,36 +772,17 @@ function createAlbum()
                     btnhide();
                   if ($('.show1.selected').length > 0) {
                     $('.show1').removeClass('selected');
-                    $('.select').removeClass('selected');
                   }
                   counter();
                 }
             });
-            function btnshow(){
-                $('#download').show();
-                $('#delete').show();
-                $('#move').show();
-                $('#restore').show();
-                $('#ADD').show();
-                $('#remove').show();
-            }
-            function btnhide(){
-                $('#download').hide();
-                $('#delete').hide();
-                $('#move').hide();
-                $('#restore').hide();
-                $('#ADD').hide();
-                $('#remove').hide();
-            }
             // 全选按钮
             $('.send').click(function () {
               if ($('.show1.selected').length == 0) {
                 $('.show1').addClass('selected');
-                $('.select').addClass('selected');
               }
               else {
                 $('.show1').removeClass('selected');
-                $('.select').removeClass('selected');
               }
               counter();
             });
@@ -761,20 +808,6 @@ function createAlbum()
                 num--;
             });
             // number of selected items
-            function counter() {
-              if ($('.show1.selected').length > 0)
-              {
-                btnshow();
-                $('.send').addClass('selected');
-              }
-              else
-              {
-                btnhide();
-                $('.send').removeClass('selected');
-              }
-              $('.send').attr('data-counter',$('.show1.selected').length);
-            }
-
             $('.show_link').bind('click',function(){
                 if($('.send').is(":hidden")){
                     $(this).click();
@@ -789,7 +822,19 @@ function createAlbum()
                   return false;
                 }
             })
-
+            $.ajax({
+                  type:'POST',
+                  url:'/get/user',
+                  processData:false,
+                  success:function(data){
+                      $('#setModal').find('input[name=username]').val(data.user)
+                      $('#setModal').find('input[name=name]').val(data.name)
+                      if(data.avatar){
+                        $('#myAvatar').attr('src',data.avatar)
+                        $('#nav-avatar').attr('src',data.avatar)
+                      }
+                }
+            })
             {%block functionOnload%}
             {%endblock%}
 
@@ -799,38 +844,48 @@ function createAlbum()
 
 </script>
 <script type="text/javascript">
-    var $btn=$("#btn");
-    var count=0;
-    var num=0;
-    var map=new HashMap();
-    var uploader = WebUploader
-            .create({
-                // swf文件路径
-                swf : "{{ url_for('static',filename='js/Uploader.swf') }}",
-                // 文件接收服务端。
-                server : '{{ url_for("upload") }}',
-                // 选择文件的按钮。可选。
-                // 内部根据当前运行是创建，可能是input元素，也可能是flash.
-                pick : {
-                    id : '#upload-btn',//这个id是你要点击上传文件的id
-                    multiple : true
-                },
-                dnd:"#upload",
-                disableGlobalDnd: true,
-                auto : false,
-                fileNumLimit:100,
-                accept: {
-                    title: 'Images',
-                    extensions: 'gif,jpg,jpeg,bmp,png',
-                    mimeTypes: 'image/*'
-                }
+    window.onload = function(){
+      var $btn=$("#btn");
+      var count=0;
+      var num=0;
+      var map=new HashMap();
+      let uploader;
+       uploader = WebUploader
+                .create({
+                    // swf文件路径
+                    swf : "{{ url_for('static',filename='js/Uploader.swf') }}",
+                    // 文件接收服务端。
+                    {%if tt==4 %}
+                    server : '{{ url_for("upload",tt=tt,txt=albumName) }}',
+                    {% endif %}
+                    {%if tt==3 or tt==2 %}
+                    server : '{{ url_for("upload",tt=tt,txt=classes) }}',
+                    {% endif %}
+                    {%if tt==1 %}
+                    server : '{{ url_for("upload",tt=tt,txt=" ") }}',
+                    {% endif %}
+                    // 选择文件的按钮。可选。
+                    // 内部根据当前运行是创建，可能是input元素，也可能是flash.
+                    pick : {
+                        id : '#upload-btn',//这个id是你要点击上传文件的id
+                        multiple : true
+                    },
+                    dnd:"#upload",
+                    disableGlobalDnd: true,
+                    auto : false,
+                    fileNumLimit:100,
+                    accept: {
+                        title: 'Images',
+                        extensions: 'gif,jpg,jpeg,bmp,png',
+                        mimeTypes: 'image/*'
+                    }
 
-            });
-
-    init(fileMd5,fileSuffix,$list,state,$btn,count,num,map,uploader);
-
+                });
+        init(fileMd5,fileSuffix,$list,state,$btn,count,num,map,uploader);
+    }
 
 </script>
+
 </body>
 
 </html>
