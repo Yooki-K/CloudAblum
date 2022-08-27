@@ -83,6 +83,15 @@ def get_time_format() -> str:
     return time.strftime("", time.localtime())
 
 
+# 创建图像缩略图 返回二进制流
+def createThumbnail(im_bytes):
+    img = Image.open(BytesIO(im_bytes))
+    w = img.width
+    h = img.height
+    img_ = img.resize((w, h), Image.NEAREST)
+    return pil_to_bits(img_, img.format)
+
+
 class ImgHandler:
     type_json = {
         'PNG': b'\x89\x50',

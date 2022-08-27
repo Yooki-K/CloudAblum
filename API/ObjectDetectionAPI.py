@@ -24,10 +24,15 @@ class ObjectAPI:
 
     @staticmethod
     def predict(imagebyte):
-        i = Image.open(BytesIO(imagebyte))
-        input_i = transform(i).unsqueeze(0)
-        p = model(input_i)
-        return imagenet_classes[int(p.argmax())]
+        try:
+            i = Image.open(BytesIO(imagebyte))
+            input_i = transform(i).unsqueeze(0)
+        except Exception:
+            i = Image.open(BytesIO(imagebyte)).convert('RGB')
+            input_i = transform(i).unsqueeze(0)
+        finally:
+            p = model(input_i)
+            return imagenet_classes[int(p.argmax())]
 
     @staticmethod
     def object_detection(imgFile) -> str:

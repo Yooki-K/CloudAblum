@@ -50,13 +50,16 @@
 <script type="text/javascript">
     $(function(){
     //获取图片
-      $.ajax({
-          type:'POST',
-          url:window.location.href,
-          success:function(data){
-              getImages(data,{{userid}});
-          }
-      })
+    if({{tt}}==1){
+        getSpecialImages({{userid}},{{tt}},'')
+    }else{
+        if({{tt}}==4){
+            getSpecialImages({{userid}},{{tt}},'{{albumName}}')
+        }
+        else{
+            getSpecialImages({{userid}},{{tt}},'{{classes}}')
+        }
+    }
     });
 
 </script>

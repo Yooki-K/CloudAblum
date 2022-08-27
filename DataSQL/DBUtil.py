@@ -1,6 +1,6 @@
 import threading
 
-from sqlalchemy import func, desc
+from sqlalchemy import func, desc, asc
 
 from utils import *
 from PIL import Image
@@ -68,14 +68,26 @@ def insert_all(session, entity_list):
     session.commit()
 
 
-def group_by_date(session, u: User):
-    result = {}
-    r = session.query(func.date_format(Img.datetime, '%Y-%m-%d').label('date')).filter(
-        Img.user == u.user, Img.deletetime == None).order_by(desc('date')).group_by('date').all()
-    for x in r:
-        date = x[0]
-        result[date] = session.query(Img).filter(Img.user == u.user, Img.deletetime == None,
-                                                 func.date_format(Img.datetime, '%Y-%m-%d') == date).all()
+def group_by_date(session, u: User, date, index, TYPE):
+    dates = []
+    data = []
+    r = None
+    if TYPE == 'before':
+        r = session.query(func.date_format(Img.datetime, '%Y-%m-%d').label('date')).filter(
+            Img.user == u.user, Img.deletetime == None).order_by(desc('date')).group_by('date').all()
+        for x in r:
+            dates.append(x[0])
+            data.append(session.query(Img).filter(Img.user == u.user, Img.deletetime == None,
+                                                  func.date_format(Img.datetime, '%Y-%m-%d') == x[0]).count())
+    else:
+        dates.append(date)
+        data.append(session.query(Img).filter(Img.user == u.user, Img.deletetime == None,
+                                              func.date_format(Img.datetime, '%Y-%m-%d') == date).offset(index).limit(
+            10).all())
+    result = {
+        'label': dates,
+        'data': data
+    }
     print(result)
     return result
 
@@ -116,24 +128,40 @@ def group_by_album(session, u: User):
     return result
 
 
-def group_by_special_class(session, u: User, classes):
-    result = {classes: session.query(Img).filter(Img.user == u.user, Img.deletetime == None,
-                                                 Img.classes == classes).all()}
-
+def group_by_special_class(session, u: User, classes, index, TYPE):
+    if TYPE == 'before':
+        result = {'label': [classes],
+                  'data': session.query(Img).filter(Img.user == u.user, Img.deletetime == None,
+                                                    Img.classes == classes).count()}
+    else:
+        result = {'label': [classes],
+                  'data': [session.query(Img).filter(Img.user == u.user, Img.deletetime == None,
+                                                     Img.classes == classes).offset(index).limit(10).all()]}
     return result
 
 
-def group_by_special_tag(session, u: User, classes):
-    result = {classes: session.query(Img).filter(Img.user == u.user, Img.deletetime == None,
-                                                 Img.facetag == classes).all()}
+def group_by_special_tag(session, u: User, classes, index, TYPE):
+    if TYPE == 'before':
 
+        result = {'label': [classes],
+                  'data': [session.query(Img).filter(Img.user == u.user, Img.deletetime == None,
+                                                     Img.facetag == classes).count()]}
+    else:
+        result = {'label': [classes],
+                  'data': [session.query(Img).filter(Img.user == u.user, Img.deletetime == None,
+                                                     Img.facetag == classes).offset(index).limit(10).all()]}
     return result
 
 
-def group_by_special_album(session, u: User, album):
+def group_by_special_album(session, u: User, album, index, TYPE):
     r = session.query(Album).filter(Album.user == u.user, Album.name == album).first()
     if r is not None:
-        result = {album: r.imgs.all()}
+        if TYPE == 'before':
+            result = {'label': [album],
+                      'data': [r.imgs.count()]}
+        else:
+            result = {'label': [album],
+                      'data': [r.imgs.offset(index).limit(10).all()]}
         return result
     else:
         return None
@@ -172,15 +200,15 @@ def update_facetag(session, u, id_list, tagName):
 
 
 # 修改人脸标识face_tag
-def update_tagName(session, old_tagName, new_tagName):
-    session.query(Img).filter(Img.facetag == old_tagName).update({'facetag': new_tagName})
+def update_tagName(session, u, old_tagName, new_tagName):
+    session.query(Img).filter(Album.user == u.user, Img.facetag == old_tagName).update({'facetag': new_tagName})
     session.commit()
     return True
 
 
 # 用户创建自定义相册
 def create_album(session, u: User, albumName):
-    r = session.query(Album).filter(Album.name == albumName).first()
+    r = session.query(Album).filter(Album.user == u.user, Album.name == albumName).first()
     if r is None:
         album = Album(user=u.user, name=albumName)
         session.add(album)
@@ -192,13 +220,13 @@ def create_album(session, u: User, albumName):
 
 # 用户删除自定义相册 已级联删除相关关联
 def delete_album(session, u: User, album_name):
-    session.query(Album).filter(Album.name == album_name).delete()
+    session.query(Album).filter(Album.user == u.user, Album.name == album_name).delete()
     session.commit()
 
 
 # 用户相册添加照片
-def add_imgs(session, id_list, album_name):
-    a = session.query(Album).filter(Album.name == album_name).first()
+def add_imgs(session, u, id_list, album_name):
+    a = session.query(Album).filter(Album.user == u.user, Album.name == album_name).first()
     if a is None:
         return
     for x in id_list:
@@ -209,9 +237,9 @@ def add_imgs(session, id_list, album_name):
 
 
 # 用户相册移动照片
-def move_imgs(session, id_list, album_name1, album_name2):
-    a = session.query(Album).filter(Album.name == album_name1).first()
-    b = session.query(Album).filter(Album.name == album_name2).first()
+def move_imgs(session, u, id_list, album_name1, album_name2):
+    a = session.query(Album).filter(Album.user == u.user, Album.name == album_name1).first()
+    b = session.query(Album).filter(Album.user == u.user, Album.name == album_name2).first()
     if a is None:
         return
     for x in id_list:
@@ -223,8 +251,8 @@ def move_imgs(session, id_list, album_name1, album_name2):
 
 
 # 用户相册移除照片
-def remove_imgs(session, id_list, album_name):
-    a = session.query(Album).filter(Album.name == album_name).first()
+def remove_imgs(session, u, id_list, album_name):
+    a = session.query(Album).filter(Album.user == u.user, Album.name == album_name).first()
     if a is None:
         return
     for x in id_list:
@@ -235,11 +263,11 @@ def remove_imgs(session, id_list, album_name):
 
 
 # 用户相册重命名
-def rename_album(session, name1, name2):
-    r = session.query(Album).filter(Album.name == name2).first()
+def rename_album(session, u, name1, name2):
+    r = session.query(Album).filter(Album.user == u.user, Album.name == name2).first()
     if r is not None:
         return False
-    r = session.query(Album).filter(Album.name == name1).first()
+    r = session.query(Album).filter(Album.user == u.user, Album.name == name1).first()
     r.name = name2
     session.commit()
     return True

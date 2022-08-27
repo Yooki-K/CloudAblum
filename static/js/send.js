@@ -664,20 +664,13 @@ function toBase64(file){
     }
     return t
 }
-//获得图片数据
-async function getImages(files,userid) {
-    console.log(new Date().getTime())
-    let cool = document.getElementsByClassName('cool')[0]
-    var index = 0
-    for(var x in files){
-        var div1 = document.createElement('div');
-        var div2 = document.createElement('div');
-        $(div1).append("<li class=\"date"+index+"\"><span onclick=\"showOrHide(event)\">"+x+"</span></li>");
-        cool.appendChild(div1)
-        div2.style.display = 'block';
-        cool.appendChild(div2);
-        for(var j=0;j<files[x].length;j++){
-            y = files[x][j]
+async function showImages(files,userid,index,num){
+    var dates = files['label']
+    var datas = files['data']
+    for(var i =0;i<dates.length;i++){
+        var div2 = document.getElementById(dates[i])
+        for(var j=0;j<datas[i].length;j++){
+            y = datas[i][j]
             var canvas = document.createElement('canvas');
             var need = document.createElement('div');
             var show_link = document.createElement('a');
@@ -704,10 +697,107 @@ async function getImages(files,userid) {
             })
             await loadImage(y,canvas)
         }
+        var state = document.getElementById(dates[i]+'_state')
+        state.innerHTML=index+"/"+num
+    }
+
+}
+//获得标签数据
+function showLabels(files){
+    let cool = document.getElementsByClassName('cool')[0]
+    var index = 0
+    var dates = files['label']
+    var datas = files['data']
+    for(var i =0;i<dates.length;i++){
+        var div1 = document.createElement('div');
+        var div2 = document.createElement('div');
+        div2.id=dates[i]
+        div2.setAttribute('data-index', 0);
+        div2.setAttribute('data-num',datas[i])
+        $(div1).append("<li class=\"date"+index+"\"><span onclick=\"showOrHide(event)\">"+dates[i]+"</span></li>");
+        $(div1).append("<span class=\"numbers\" id=\""+dates[i]+"_state\">(0/"+datas[i]+")</span>");
+        div2.style.display = 'block';
+        cool.appendChild(div1)
+        cool.appendChild(div2)
         index=index+1;
     }
-    console.log(new Date().getTime())
 }
+//获得图片数据
+async function getSpecialImages(userid,tt,label) {
+    //获取标签
+    let data_ = await new Promise((resolve) => {
+        $.ajax({
+          type:'POST',
+          url:'/getImageBefore',
+          data:JSON.stringify({
+             'label':label,
+             'tt':tt,
+          }),
+          contentType:'application/json',
+          success: function (result) {
+              resolve(result);
+          }
+        })
+    })
+    showLabels(data_)
+    //获取图片
+    if(tt==1){
+        for(var i=0;i<data_['label'].length;i++){
+            div = document.getElementById(data_['label'][i])
+            var num = parseInt(div.dataset.num)
+            while(parseInt(div.dataset.index)<num){
+                console.log(parseInt(div.dataset.index))
+                console.log(new Date().getTime())
+                var data__ = await new Promise((resolve)=>{
+                    $.ajax({
+                      type:'POST',
+                      url:'/getImage',
+                      data:JSON.stringify({
+                         'label':data_['label'][i],
+                         'tt':tt,
+                         'index':parseInt(div.dataset.index),
+                      }),
+                      contentType:'application/json',
+                      success:function(data){
+                        resolve(data)
+                      }
+                    })
+                })
+                var index_ = data__['data'][0].length+parseInt(div.dataset.index)
+                div.setAttribute('data-index',index_);
+                showImages(data__,userid,index_,num);
+            }
+        }
+    }else{
+        div = document.getElementById(label)
+        var num = parseInt(div.dataset.num)
+        while(parseInt(div.dataset.index)<num){
+            console.log(parseInt(div.dataset.index))
+            console.log(new Date().getTime())
+            var data__ = await new Promise((resolve)=>{
+                $.ajax({
+                  type:'POST',
+                  url:'/getImage',
+                  data:JSON.stringify({
+                     'label':label,
+                     'tt':tt,
+                     'index':parseInt(div.dataset.index),
+                  }),
+                  contentType:'application/json',
+                  success:function(data){
+                    resolve(data)
+                  }
+                })
+            })
+            var index_ = data__['data'][0].length+parseInt(div.dataset.index)
+            div.setAttribute('data-index',index_);
+            showImages(data__,userid,index_,num);
+        }
+
+    }
+
+}
+
 function loadImage(y,cvs){
     return new Promise((resolve,reject) =>{
         var img = new Image();

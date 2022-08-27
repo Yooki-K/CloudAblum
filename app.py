@@ -16,6 +16,7 @@ from flask_cors import cross_origin
 
 # git config --global http.sslVerify "false"
 
+
 '''配置数据库'''
 app.config['SECRET_KEY'] = 'hard to guess'  # 一个字符串，密码。也可以是其他如加密过的
 
@@ -28,8 +29,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+pymysql://{0}:{1}@{2}:{3}/{4}".fo
                                                                                      )
 
 # 设置下方这行code后，在每次请求结束后会自动提交数据库中的变动
-app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+# app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
+# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 # 设置session过期时间为7天
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 # 配置邮箱
@@ -201,16 +202,18 @@ def getUser():
             'user': r.user,
             'name': r.name,
             'pwd': r.pwd,
-            'avatar': ImgHandler.getBase64(r.avatar),
+            'avatar': r.avatar,
             'facesetid': r.facesetid
         }
+        if r.avatar is not None and len(r.avatar) != 0:
+            rr['avatar'] = ImgHandler.getBase64(r.avatar)
         return jsonify(rr)
     else:
         return redirect(url_for('sign_in_page'))
 
 
 # 用户主界面
-@app.route('/<int:userid>/index/<int:tt>', methods=('GET', 'POST'))
+@app.route('/<int:userid>/index/<int:tt>', methods=['GET'])
 def index(userid, tt):
     u = session.get('User')
     if u is not None:
@@ -225,24 +228,82 @@ def index(userid, tt):
         #             path.append('static/temp/video/' + x)
         #             # path.append(url_for('static', filename='temp/video/' + x))
         r = None
+        tttt = time.time()
         if tt == 1:  # 按天分类
-            if request.method == 'GET':
-                return render_template("index.html", userid=userid, username=u.name, tt=tt, path=path)
-            else:
-                r = group_by_date(db.session, u)
-                return r
+            return render_template("index.html", userid=userid, username=u.name, tt=tt, path=path)
         elif tt == 2:  # 按人物标签分类
             r = group_by_tag(db.session, u)
+            print(time.time() - tttt)
             return render_template("face_album.html", userid=userid, username=u.name, file_list=r, tt=tt, path=path)
         elif tt == 3:  # 按分类标签分类
             r = group_by_class(db.session, u)
+            print(time.time() - tttt)
             return render_template("album.html", userid=userid, username=u.name, file_list=r, tt=tt, path=path)
         elif tt == 4:  # 按相册分类
             r = group_by_album(db.session, u)
+            print(time.time() - tttt)
             return render_template("album.html", userid=userid, username=u.name, file_list=r, tt=tt, path=path)
         return render_template("index.html", userid=userid, username=u.name, file_list=r, tt=tt, path=path)
     else:
         return redirect(url_for('sign_in_page'))
+
+
+# 获取上传图像
+@app.route('/getImageBefore', methods=['POST'])
+def getSpecialImageBefore():
+    u = session.get('User')
+    if u is not None:
+        u = User.from_dict(u)
+        r = None
+        tt = request.json.get('tt')
+        if tt == 1:  # 按天分类
+            r = group_by_date(db.session, u, '', 0, 'before')
+        else:
+            classes = request.json.get('label')
+            if tt == 2:
+                r = group_by_special_tag(db.session, u, classes, 0, 'before')  # {'',[] }
+                if len(r['data']) == 0:
+                    r = {}
+            elif tt == 3:
+                r = group_by_special_class(db.session, u, classes, 0, 'before')
+            elif tt == 4:
+                r = group_by_special_album(db.session, u, classes, 0, 'before')
+                if r is None:
+                    r = {}
+        return r
+    else:
+        return {}
+
+
+# 获取上传图像
+@app.route('/getImage', methods=['POST'])
+def getSpecialImage():
+    u = session.get('User')
+    if u is not None:
+        u = User.from_dict(u)
+        r = None
+        tt = request.json.get('tt')
+        index = request.json.get('index')
+        label = request.json.get('label')
+        tttt = time.time()
+        if tt == 1:  # 按天分类
+            r = group_by_date(db.session, u, label, index, '')
+        else:
+            if tt == 2:
+                r = group_by_special_tag(db.session, u, label, index, '')  # {'',[] }
+                if len(r['data']) == 0:
+                    r = {}
+            elif tt == 3:
+                r = group_by_special_class(db.session, u, label, index, '')
+            elif tt == 4:
+                r = group_by_special_album(db.session, u, label, index, '')
+                if r is None:
+                    r = {}
+        print(time.time() - tttt)
+
+        return r
+    else:
+        return {}
 
 
 # 操作用户自定义相册
@@ -265,19 +326,19 @@ def operate_album(t):
             name1 = request.json.get('albumName1')
             name2 = request.json.get('albumName2')
             id_list = request.json.get('id_list')
-            move_imgs(db.session, id_list, name1, name2)
+            move_imgs(db.session, u, id_list, name1, name2)
         elif t == 'add':
             id_list = request.json.get('id_list')
             name = request.json.get('albumName')
-            add_imgs(db.session, id_list, name)
+            add_imgs(db.session, u, id_list, name)
         elif t == 'remove':
             id_list = request.json.get('id_list')
             name = request.json.get('albumName')
-            remove_imgs(db.session, id_list, name)
+            remove_imgs(db.session, u, id_list, name)
         elif t == 'rename':
             name1 = request.json.get('albumName1')
             name2 = request.json.get('albumName2')
-            r = rename_album(db.session, name1, name2)
+            r = rename_album(db.session, u, name1, name2)
             if not r:
                 return '该相册已存在,请重新命名'
         else:
@@ -287,29 +348,14 @@ def operate_album(t):
         return "请登录"
 
 
-@app.route('/<int:userid>/album/<int:tt>/<string:classes>', methods=('GET', 'POST'))
+@app.route('/<int:userid>/album/<int:tt>/<string:classes>', methods=['GET'])
 def album_class(userid, tt, classes):
     u = session.get('User')
     u = User.from_dict(u)
-    if request.method == 'GET':
-        if tt == 2 or tt == 3:
-            return render_template("index.html", userid=userid, username=u.name, tt=tt, classes=classes)
-        elif tt == 4:
-            return render_template("index.html", userid=userid, username=u.name, tt=4, albumName=classes)
-    if request.method == 'POST':
-        r = group_by_date(db.session, u)
-
-        if tt == 2:
-            r = group_by_special_tag(db.session, u, classes)  # {'',[] }
-            if len(r[classes]) == 0:
-                r = {}
-        elif tt == 3:
-            r = group_by_special_class(db.session, u, classes)
-        elif tt == 4:
-            r = group_by_special_album(db.session, u, classes)
-            if r is None:
-                r = {}
-        return r
+    if tt == 2 or tt == 3:
+        return render_template("index.html", userid=userid, username=u.name, tt=tt, classes=classes)
+    elif tt == 4:
+        return render_template("index.html", userid=userid, username=u.name, tt=4, albumName=classes)
 
 
 # 发送邮件
@@ -495,7 +541,7 @@ def update_tag(t):
     tag2 = request.json.get('new_tagName')
     print(tag1, tag2)
     if t == 1:  # 修改人脸标签
-        update_tagName(db.session, tag1, tag2)
+        update_tagName(db.session, u, tag1, tag2)
         return '修改成功！'
     elif t == 3:  # 移动
         id_list = request.json.get('id_list')
@@ -535,7 +581,7 @@ def upload(tt, txt):
     else:
         lastId = upload_img(db.session, u.user, files, tt, None)
     if tt == 4:
-        add_imgs(db.session, [lastId], txt)
+        add_imgs(db.session, u, [lastId], txt)
     return jsonify({'upload': True})
 
 
