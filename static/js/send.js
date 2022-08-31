@@ -467,7 +467,6 @@ function openRegisterModal(t){
               console.log(data.avatar)
                   e.find('input[name=username]').val(data.user)
                   e.find('input[name=name]').val(data.name)
-                  e.find('#facesetid').html(data.facesetid)
                   if(data.avatar){
                     $('#myAvatar').attr('src',data.avatar)
                     $('#nav-avatar').attr('src',data.avatar)

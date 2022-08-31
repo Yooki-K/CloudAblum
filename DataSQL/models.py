@@ -8,7 +8,6 @@ class User(db.Model):
     user = db.Column(db.String(64), unique=True, nullable=False)
     name = db.Column(db.String(64), nullable=False)
     pwd = db.Column(db.String(64))
-    facesetid = db.Column(db.String(128))
     avatar = db.Column(db.LargeBinary(length=65536))  # 二进制图片流 头像
     # points = db.Column(db.Integer, default=0)
     # space = db.Column(db.Integer, default=1024 * 1024 * 1024)  # 内存初始1GB
@@ -21,7 +20,7 @@ class User(db.Model):
 
     # dict(user)，会先调用keys方法，这里重写，自定义获取返回的字段
     def keys(self):
-        return ['id', 'user', 'name', 'pwd', 'facesetid']
+        return ['id', 'user', 'name', 'pwd']
 
     # dict(user)获取完字段后，会取出对应字段的值，这里使用__getitem__，这里getattr(self, item)拿到值信息，item为key名
     def __getitem__(self, item):
@@ -29,7 +28,7 @@ class User(db.Model):
 
     @staticmethod
     def from_dict(u: dict):
-        return User(user=u['user'], id=u['id'], name=u['name'], facesetid=u['facesetid'])
+        return User(user=u['user'], id=u['id'], name=u['name'])
 
 
 tb_album_img = db.Table('album_img',

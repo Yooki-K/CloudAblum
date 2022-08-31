@@ -132,7 +132,7 @@ def sign_in():
                                action='signing in fails!!!', back=url_for('sign_in_page'))
     session['User'] = result
     if rem == 'on':
-        session.permanent = True  # 设置session永久有效(7天内免登录)
+        session.permanent = True  # 设置session永久有效
     return redirect(url_for('index', userid=result['id'], tt=1))
 
 
@@ -202,8 +202,7 @@ def getUser():
             'user': r.user,
             'name': r.name,
             'pwd': r.pwd,
-            'avatar': r.avatar,
-            'facesetid': r.facesetid
+            'avatar': r.avatar
         }
         if r.avatar is not None and len(r.avatar) != 0:
             rr['avatar'] = ImgHandler.getBase64(r.avatar)
@@ -619,49 +618,123 @@ def clear_recycle():
         return '请先登录'
 
 
-@app.route('/addImageFromUrl', methods=['post', 'get'])
+@app.route('/', methods=['GET', 'POST'])
+def mainPage():
+    return redirect(url_for('sign_in_page'))
+
+
+# 插件区
+
+def checkCookie(request, session):
+    if 'XFYID' in request.cookies:
+        XFYID = request.cookies['XFYID']
+    else:
+        return False
+    if 'KEY' in request.cookies:
+        KEY = request.cookies['KEY']
+    else:
+        return False
+    username = aes_decrypt(XFYID, KEY)
+    r = session.query(User).filter(User.user == username).first()
+    if r is None:
+        return False
+    else:
+        return r
+
+
+@app.route('/plug-in/addImageFromUrl', methods=['post'])
 @cross_origin()
 def addImageFromUrl():
-    if request.method == 'GET':
-        return ''
+    u = checkCookie(request, db.session)
+    if not u:
+        return '登录失败'
     else:
         hhh = {
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
             'Accept-Encoding': 'gzip, deflate, br',
             'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
             'Connection': 'keep-alive',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36 Edg/93.0.961.38',
+            'User-Agent': request.headers['USER_AGENT'],
         }
-        txt = request.data.decode()
+        txts = request.json.get('data')
         data = []
-        txts = txt.split(',,,')
-        facesetid = txts.pop(0)
-        u = db.session.query(User).filter(facesetid == facesetid).first()
+        error = []
         for x in txts:  # todo 插件API
-            d = {}
-            if 'data:image' in x:
-                a = x.split('base64,')[1]
-                d['filename'] = a[:7]
+            d = {'filename': x['name']}
+            if 'data:image' in x['content']:
+                a = x['content'].split('base64,')[1]
                 d['stream'] = decode(a)
                 data.append(d)
-            if 'http' in x:
-                temp = x.split('/')[-1]
-                d['filename'] = re.findall('(.*?)\.', temp)[0]
-                r = requests.get(url=x, headers=hhh, timeout=10)
+            if 'http' in x['content']:
+                r = requests.get(url=x['content'], headers=hhh, timeout=5)
                 if '<!DOCTYPE html>' not in r.text:
                     d['stream'] = r.content
                     data.append(d)
+                else:
+                    error.append(x['content'])
         upload_img(db.session, u.user, data, 10, None, True)
-        return '成功'
+        if len(error) > 0:
+            return "以下链接上传失败: \n" + '\n'.join(error)
+        else:
+            return '上传成功'
 
 
-@app.route('/', methods=['GET', 'POST'])
-def mainPage():
-    return redirect(url_for('sign_in_page'))
+# 登录   username -用户名 pwd -登录密码
+@app.route('/plug-in/sign-in', methods=['post'])
+def sign_in_():
+    user = request.form.get('username')
+    pwd = request.form.get('pwd')
+    result = db.session.query(User).filter(User.user == user).first()
+    if result is None:
+        return '该用户不存在'
+    if result.pwd != pwd:
+        return '密码错误'
+    session['User'] = result
+    resp = make_response('登陆成功')
+    aes_key = generate_random_str(16)
+    resp.set_cookie("XFYID", aes_encrypt(user, aes_key), max_age=3600 * 24 * 365)
+    resp.set_cookie("KEY", aes_key, max_age=3600 * 24 * 365)
+    return resp
+
+
+# 获得用户个人信息
+@app.route('/plug-in/getUser', methods=['POST'])
+def getUser_():
+    r = checkCookie(request, db.session)
+    if not r:
+        return '登录失败'
+    rr = {
+        'user': r.user,
+        'name': r.name,
+        'avatar': r.avatar
+    }
+    if r.avatar is not None and len(r.avatar) != 0:
+        rr['avatar'] = ImgHandler.getBase64(r.avatar)
+    return jsonify(rr)
+
+
+# 登出
+@app.route('/plug-in/logout', methods=['get'])
+def logout_():
+    resp = make_response('登出成功')
+    resp.delete_cookie('XFYID')
+    resp.delete_cookie('KEY')
+    return resp
+
+
+@app.route('/plug-in/getAblumName', methods=['get'])
+def getAblumName_():
+    u = checkCookie(request, db.session)
+    if not u:
+        return '登录失败'
+    r = db.session.query(Album.name).filter(Album.user == u.user).all()
+    r = [x[0] for x in r]
+    return json.dumps({'data': r})
 
 
 if __name__ == '__main__':
     delete_timeout(db.session)
     # reset()
     app.run(host='127.0.0.1', port=80)
+    # app.run(host='10.0.4.12', port=80)
     pass

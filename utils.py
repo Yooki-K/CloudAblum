@@ -8,8 +8,9 @@ import urllib
 import urllib.parse
 from hashlib import sha1
 from hashlib import sha256
+from Crypto.Cipher import AES
+from binascii import b2a_hex, a2b_hex
 from io import BytesIO
-
 import cv2
 import numpy as np
 from PIL import Image
@@ -99,7 +100,8 @@ class ImgHandler:
         'ICO': b'\x00\x00\x01\x00\x01\x00\x20\x20',
         'GIF': b'\x47\x49\x46',
         'BMP': b'\x42\xd4D',
-        'TIFF': [b'\x4D\x4D', b'\x49\x49']
+        'TIFF': [b'\x4D\x4D', b'\x49\x49'],
+        'webp': b'RIFF'
     }
 
     @staticmethod
@@ -128,6 +130,41 @@ class ImgHandler:
         else:
             print(None)
             return None
+
+
+def aes_encrypt(message, aes_key):
+    """use AES to encrypt message,
+    :param message: 需要加密的内容
+    :param aes_key: 密钥
+    :return: encrypted_message密文
+    """
+    mode = AES.MODE_ECB  # 加密模式
+    if type(message) == str:
+        message = bytes(message, 'utf-8')
+    if type(aes_key) == str:
+        aes_key = bytes(aes_key, 'utf-8')
+    # aes_key, message必须为16的倍数
+    while len(aes_key) % 16 != 0:
+        aes_key += b' '
+    while len(message) % 16 != 0:
+        message += b' '
+    # 加密对象aes
+    aes = AES.new(key=aes_key, mode=mode)
+    encrypt_message = aes.encrypt(plaintext=message)
+    return b2a_hex(encrypt_message)
+
+
+def aes_decrypt(encrypt_message, aes_key):
+    """ AES解密
+    :param encrypt_message: 密文
+    :param aes_key: 秘钥
+    :return: decrypt_text解密后内容
+    """
+    aes_mode = AES.MODE_ECB  # 加密模式
+    aes = AES.new(key=bytes(aes_key, 'utf-8'), mode=aes_mode)
+    decrypted_text = aes.decrypt(a2b_hex(encrypt_message))
+    decrypted_text = decrypted_text.rstrip()  # 去空格
+    return decrypted_text.decode()
 
 
 class Signature:
