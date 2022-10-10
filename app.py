@@ -1,4 +1,3 @@
-import re
 import requests
 from datetime import timedelta
 from json import JSONEncoder
@@ -175,13 +174,13 @@ def operateUsers(t):
             f = db.session.query(User).filter(facesetid == facesetid).first()
             if f is not None:
                 break
-        user = User(user=user, pwd=pwd, name=name, facesetid=facesetid)
+        user = User(user=user, pwd=pwd, name=name)
         db.session.add(user)
         db.session.commit()
     if t == 'forget':
         session.pop('User')
         session['User'] = update_users(db.session, user, request.form.to_dict())
-    return jsonify({'state': True, 'mes': '操作成功'})
+    return jsonify({'state': True, 'mes': '注册成功'})
 
 
 # 登出页面
@@ -471,22 +470,33 @@ def classify():
     u = session.get('User')
     if u is not None:
         u = User.from_dict(u)
-        thread1 = threading.Thread(target=detection_img, args=(db.session, [u]), daemon=True, name="检测_" + str(u.id))
-        thread1.start()
+        if getDetectionProcess() is None:
+            print('no, create a process')
+            detection_process_list.put(u.user, block=True)
+            print(detection_process_list.empty())
+            Process1 = mp.Process(target=detection_img, args=(detection_process_list,),
+                                  name=detection_process_name)
+            Process1.start()
+        else:
+            print('yes, does not create a process')
+            if detection_process_list.full():
+                return {'state': False}
+            else:
+                detection_process_list.put(u.user)
         # clearVideos(u)
         # createVideos(u)
-        return {"threadName": "检测_" + str(u.id)}
+        return {'state': True}
     else:
-        return '请登录'
+        return {'state': False, 'message': '请登录'}
 
 
 # 判断检测是否结束
-@app.route('/judgeclassify', methods=['post'])
+@app.route('/judgeclassify', methods=['get'])
 def judgeIsFinished():
-    name = request.json.get('threadName')
-    for x in threading.enumerate():
-        if x.name == name:
-            return {'isFinished': False}
+    if getDetectionProcess() is not None:
+        print('正在分类检测')
+        return {'isFinished': False}
+    print('分类结束')
     return {'isFinished': True}
 
 
@@ -613,7 +623,7 @@ def clear_recycle():
     u = session.get('User')
     if u is not None:
         u = User.from_dict(u)
-        return str(delete_timeout(db.session, u, True))
+        return "成功清空" + str(delete_timeout(db.session, u, True)) + "张图片！"
     else:
         return '请先登录'
 

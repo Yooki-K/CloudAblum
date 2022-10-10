@@ -88,20 +88,19 @@ function detection(){
         processData:false,
         contentType:'application/json',
         success:function(data){
-            name = data['threadName'];
             setMesbox("正在检测",-1);
-            setTimeout(function(){judge(name);},5000);
+            setTimeout(function(){judge();},5000);
         },
         error:function(e){
-            alert("error"+e);
+            alert("error-detection"+e);
         }
     });
 }
-function judge(name,e){
+
+function judge(){
     $.ajax({
         url:"/judgeclassify",
-        type:"post",
-        data:JSON.stringify({"threadName":name}),
+        type:"get",
         dataType: "json",
         processData:false,
         contentType:"application/json",
@@ -110,14 +109,15 @@ function judge(name,e){
             if(isFinished){
                 setMesbox("检测完毕",7);
             }else{
-                setTimeout(function(){judge(name,e);},5000);
+                setTimeout(function(){judge();},5000);
             }
         },
         error:function(e){
-               alert("error"+e);
+               alert("error-judge"+e);
         }
     });
 }
+
 // 移动
 function updateTags(e,url,event){
     var a = new Array();
@@ -422,6 +422,7 @@ function clearRecycle(url){
           contentType:false,
           contentType:'application/json',
           success:function(data){
+              alert(data);
               window.location.reload();
           }
       })
@@ -824,6 +825,7 @@ function loadImage(y,cvs){
         img.src = y.content;
     });
 }
+
 function counter() {
   if ($('.show1.selected').length > 0)
   {
@@ -837,6 +839,7 @@ function counter() {
   }
   $('.send').attr('data-counter',$('.show1.selected').length);
 }
+
 function btnshow(){
     $('#download').show();
     $('#delete').show();

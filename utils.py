@@ -14,9 +14,21 @@ from io import BytesIO
 import cv2
 import numpy as np
 from PIL import Image
+import multiprocessing as mp
 
 CONF = conf.ConfigParser()
 CONF.read('ini.cfg', encoding="utf-8")
+detection_process_name = 'DetectionProcess'
+detection_process_list = mp.Queue()
+
+
+# 查看检测进程是否在进行
+def getDetectionProcess():
+    ps = mp.active_children()
+    for p in ps:
+        if p.name == detection_process_name:
+            return p
+    return None
 
 
 # PIL打开图片转换为opencv2打开格式

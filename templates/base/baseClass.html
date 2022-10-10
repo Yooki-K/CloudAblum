@@ -6,11 +6,12 @@
                 {% if file_list[x] == 'none' %}
                 <img src="{{ url_for('static',filename='images/empty.jpg') }}" title="{{x}}"
                      alt="Image"
-                     class="img-fluid tm-img show1" style="z-index: 0;">
+                     class="show2" style="z-index: 0;">
                 {%else%}
                 <img src="{{getbase64(file_list[x].content)}}" title="{{x}}"
                      style="background-image:{{getbase64(file_list[x].content)}};z-index: 0;" alt="Image"
-                     class="img-fluid tm-img" id="{{file_list[x].id}}">
+                     class="show2" id="{{file_list[x].id}}">
+                <!--                class='img-fluid tm-img' -->
                 {% endif %}
                 <figcaption>
                     <h2 class="tm-figure-title">{{x}}</h2>

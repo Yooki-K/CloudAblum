@@ -10,7 +10,7 @@
     <meta name="author" content="">
     <meta name="keyword"
           content="Bootstrap,Admin,Template,Open,Source,AngularJS,Angular,Angular2,jQuery,CSS,HTML,RWD,Dashboard">
-    <link rel="shortcut icon" href="/static/images/logo.png')}}">
+    <link rel="shortcut icon" href="/static/images/logo_128.png')}}">
     <link rel="stylesheet" href="{{ url_for('static',filename='css/base.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/bootstrap.min.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/member.css') }}">
@@ -308,7 +308,7 @@ button.send.selected:after {
 
 <body class="app header-fixed sidebar-fixed aside-menu-fixed aside-menu-hidden">
 <header class="app-header navbar">
-    <img src="{{ url_for('static',filename='images/logo.png') }}" height="15" style="vertical-align:middle">&nbsp;
+    <img src="{{ url_for('static',filename='images/logo_128.png') }}" height="35" style="vertical-align:middle">&nbsp;
     <span class="padding-left-8x" style="font-size: 24px;vertical-align:middle">智能云相册平台</span>
     <small style="margin-top:20px;margin-left:10px;color:#ccc;">@小福言团队</small>
     <!--    <ul class="nav navbar-nav hidden-md-down">-->
@@ -518,15 +518,17 @@ button.send.selected:after {
 <div class="dropdown-menu dropdown-menu-right" id="menu">
     {%if tt == 1 or classes or albumName %}
     <a class="dropdown-item" id="upload-btn" href="javascript:void(0)"><i class="fa fa-upload"></i> 上传照片</a>
+    <a class="dropdown-item" onclick="detection()" href="javascript:void(0)"><i class="fa fa-upload"></i> 手动检测</a>
     {%endif%}
     {%if tt == 1 or classes or albumName or not tt%}
     <a class="dropdown-item edit" href="javascript:void(0)"><i class="fa fa-pencil"></i> 编辑模式</a>
     {%endif%}
     {%if tt == 4 and not albumName%}
-    <a class="dropdown-item" data-toggle="modal" data-target="#createAlbum" href="#"><i class="fa fa-plus"></i>新建</a>
+    <a class="dropdown-item" data-toggle="modal" data-target="#createAlbum" href="javascript:void(0)"><i
+            class="fa fa-plus"></i>新建</a>
     {%endif%}
     {%if not tt%}
-    <a class="dropdown-item dd" onclick="clearRecycle('{{url_for('clear_recycle')}}')" href="#"><i
+    <a class="dropdown-item dd" onclick="clearRecycle('{{url_for('clear_recycle')}}')" href="javascript:void(0)"><i
             class="fa fa-trash"></i>清空</a>
     {%endif%}
 </div>
@@ -614,19 +616,20 @@ button.send.selected:after {
                 <!--                        精彩时刻<span-->
                 <!--                                class="badge badge-info">NEW</span></a>-->
                 <!--                </li>-->
-                <hr style="filter: progid:dximagetransform.microsoft.glow(color=" #987cb9,strength=10)" width="100%"
-                    color="#987cb9" size=1>
+                <!--                <hr style="filter: progid:dximagetransform.microsoft.glow(color=" #987cb9,strength=10)" width="100%"-->
+                <!--                    color="#987cb9" size=1>-->
                 <li class="divider"></li>
                 <li class="nav-title">
                     其它
                 </li>
                 <li class="nav-item nav-dropdown">
-                    <a class="nav-link nav-dropdown-toggle" href="https://github.com/ky-sfms/CloudAblum"
+                    <a class="nav-link nav-dropdown-toggle" href="https://github.com/Yooki-K/CloudAblum"
                        target="_blank"><i class="icon-star" style="content:none;"></i> 关于我们</a>
                 </li>
                 <li class="nav-item nav-dropdown">
-                    <a class="nav-link nav-dropdown-toggle" href="/static/js/plug-in.js"
-                       target="_blank"><i class="icon-info" style="content:none;"></i> 油猴脚本</a>
+                    <a class="nav-link nav-dropdown-toggle"
+                       href="https://github.com/Yooki-K/CloudAblum/releases/download/%E6%8F%92%E4%BB%B6v1.2/default.zip"
+                       target="_blank"><i class="icon-info" style="content:none;"></i>浏览器插件 </a>
                 </li>
             </ul>
             <ul>

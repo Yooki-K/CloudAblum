@@ -26,6 +26,7 @@ class User(db.Model):
     def __getitem__(self, item):
         return getattr(self, item)
 
+
     @staticmethod
     def from_dict(u: dict):
         return User(user=u['user'], id=u['id'], name=u['name'])
@@ -55,7 +56,7 @@ class Img(db.Model):
     facetag = db.Column(db.String(64))
     deletetime = db.Column(db.DateTime)
     albums = db.relationship('Album', secondary=tb_album_img,
-                             backref='userimgs', lazy='dynamic')
+                             backref='userimgs', lazy='dynamic', passive_deletes=True)
 
     # __repr__()方法显示一个可读字符串，虽然不是完全必要，不过用于调试、测试是很不错的。
     def __repr__(self):
@@ -91,7 +92,7 @@ class Album(db.Model):
     user = db.Column(db.String(64), db.ForeignKey('Users.user', ondelete='CASCADE'))
     name = db.Column(db.String(64))
     imgs = db.relationship(Img, secondary=tb_album_img,
-                           backref=db.backref('userAlbums', lazy='dynamic'), lazy='dynamic',
+                           backref=db.backref('userAlbums', lazy='dynamic'), lazy='dynamic', passive_deletes=True
                            )
 
     def __repr__(self):

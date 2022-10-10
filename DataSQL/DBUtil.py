@@ -88,7 +88,6 @@ def group_by_date(session, u: User, date, index, TYPE):
         'label': dates,
         'data': data
     }
-    print(result)
     return result
 
 
@@ -131,8 +130,8 @@ def group_by_album(session, u: User):
 def group_by_special_class(session, u: User, classes, index, TYPE):
     if TYPE == 'before':
         result = {'label': [classes],
-                  'data': session.query(Img).filter(Img.user == u.user, Img.deletetime == None,
-                                                    Img.classes == classes).count()}
+                  'data': [session.query(Img).filter(Img.user == u.user, Img.deletetime == None,
+                                                     Img.classes == classes).count()]}
     else:
         result = {'label': [classes],
                   'data': [session.query(Img).filter(Img.user == u.user, Img.deletetime == None,
@@ -201,7 +200,7 @@ def update_facetag(session, u, id_list, tagName):
 
 # 修改人脸标识face_tag
 def update_tagName(session, u, old_tagName, new_tagName):
-    session.query(Img).filter(Album.user == u.user, Img.facetag == old_tagName).update({'facetag': new_tagName})
+    session.query(Img).filter(Img.user == u.user, Img.facetag == old_tagName).update({'facetag': new_tagName})
     session.commit()
     return True
 
@@ -325,66 +324,60 @@ def search_face(session, user, imageFile, confidence=0.5):
         return [faceid, facetag]
 
 
-# 自动分类人物
-def classification(session, u: User):
-    f = fapi.FaceAPI()
-    tt = time.time()
-    while True:
-        img = session.query(Img).filter(Img.user == u.user, Img.facetag == '其它', Img.classes == 'human',
-                                        Img.faceid == None,
-                                        Img.deletetime == None).first()
-        if img is not None:
-            print(img.name)
-            r = search_face(session=session, user=u.user, imageFile=img.content)
-            if r is None:  # 新增人脸
-                while True:
-                    new = f.add_face()
-                    temp = session.query(Img).filter(Img.faceid == new, Img.deletetime == None).first()
-                    if temp is None:
-                        break
-                img.facetag = new
-                img.faceid = new
-            else:  # 更改facetag
-                img.facetag = r[1]
-            session.commit()
-        else:
-            break
-    print('分类结束，耗时：', time.time() - tt)
-
-
 # 检测图片
-def detection_img(session_, users_):
+def detection_img(users: mp.Queue):
     """对用户上传图片进行后台检测 :物体识别 -> 人脸检测 -> 智能分类"""
-
-    def doIt(session, users):
+    f = fapi.FaceAPI()
+    o = oapi.ObjectAPI()
+    session = db.session
+    print('start detection_img')
+    print(users.empty())
+    while not users.empty():
+        user = users.get(True)
+        print('user:' + user)
+        tt = time.time()
+        print("{0}用户{1}开始检测".format(user, tt))
+        images = session.query(Img).filter(Img.user == user, Img.classes == 'waiting',
+                                           Img.deletetime == None).all()
+        for x in images:
+            f_stream = x.content
+            classes = None
+            if len(f_stream) < 3 * 1024 * 1024:  # 图片小于3MB，可
+                r1 = f.face_detection(f_stream)
+                if r1 > 0:
+                    classes = 'human'
+                else:
+                    classes = o.object_detection(f_stream)
+                    print(classes)
+                    # 物体检测代码
+            x.classes = classes
+            x.faceid = None
+            x.facetag = '其它'
+            session.commit()
+        print('{}检测结束,耗时{}秒'.format(time.time(), time.time() - tt))
         f = fapi.FaceAPI()
-        o = oapi.ObjectAPI()
-        for u in users:
-            tt = time.time()
-            print("{0}用户{1}开始检测".format(u.name, tt))
-            images = session.query(Img).filter(Img.user == u.user, Img.classes == 'waiting',
-                                               Img.deletetime == None).all()
-            for x in images:
-                f_stream = x.content
-                classes = None
-                if len(f_stream) < 3 * 1024 * 1024:  # 图片小于3MB，可上传
-                    r1 = f.face_detection(f_stream)
-                    if r1 > 0:
-                        classes = 'human'
-                    else:
-                        classes = o.object_detection(f_stream)
-                        print(classes)
-                        # 物体检测代码
-                x.classes = classes
-                x.faceid = None
-                x.facetag = '其它'
+        tt = time.time()
+        while True:
+            img = session.query(Img).filter(Img.user == user, Img.facetag == '其它', Img.classes == 'human',
+                                            Img.faceid == None,
+                                            Img.deletetime == None).first()
+            if img is not None:
+                print(img.name)
+                r = search_face(session=session, user=user, imageFile=img.content)
+                if r is None:  # 新增人脸
+                    while True:
+                        new = f.add_face()
+                        temp = session.query(Img).filter(Img.faceid == new, Img.deletetime == None).first()
+                        if temp is None:
+                            break
+                    img.facetag = new
+                    img.faceid = new
+                else:  # 更改facetag
+                    img.facetag = r[1]
                 session.commit()
-            print('{}检测结束,耗时{}秒'.format(time.time(), time.time() - tt))
-            classification(session=session, u=u)
-
-    t = threading.Thread(target=doIt, args=(session_, users_))
-    t.setDaemon(True)
-    t.start()
+            else:
+                break
+        print('分类结束，耗时：', time.time() - tt)
 
 
 # ! 图片放入回收站
@@ -424,6 +417,8 @@ def delete_timeout(session, u: User = None, isAll=False):
         return num
     else:
         r = session.query(Img).filter(Img.deletetime != None).all()
+        if len(r) == 0:
+            return
         for x in r:
             session.delete(x)
         session.commit()
